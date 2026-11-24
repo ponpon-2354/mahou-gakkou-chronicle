@@ -14,11 +14,18 @@
 @media (max-height:500px){.side-panel{font-size:.78rem;padding:10px}.member-card{padding:6px 0;font-size:.74rem}.controls-note{font-size:.7rem;margin:10px 0;line-height:1.5}.touch-controls{grid-template-columns:repeat(3,34px);grid-template-rows:repeat(2,32px);margin:10px auto 8px}.side-panel h2{font-size:1rem}}
 .panel,.battle-panel,.dialogue-box{max-height:calc(100dvh - 36px);overflow-y:auto}
 
+/* visual remake layers */
+.title-screen{position:relative;isolation:isolate;background:#171b32;overflow:hidden}.title-screen>#title-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;image-rendering:pixelated}.title-screen>.title-card{z-index:1}.title-card{position:relative;background:#131e32df;border-radius:4px;box-shadow:0 0 0 5px #19253ddd,0 0 0 7px #8195bb,0 24px 90px #0009}
+#world-fg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;filter:blur(2px);z-index:2;image-rendering:pixelated}.world-frame.no-blur #world-fg{display:none}.world-frame #world{position:relative;z-index:1}
+.dialogue-box,.panel,.battle-panel{box-shadow:inset 0 0 0 3px #18243a,inset 0 0 0 4px #526583,0 20px 70px #0009;border-radius:5px}
+#battle-field{position:relative;min-height:170px;overflow:hidden}#battle-bg,#battle-fx{position:absolute;inset:0;width:100%;height:170px;pointer-events:none;image-rendering:pixelated}#battle-bg{z-index:0}#battle-fx{z-index:3}.enemy-list{position:relative;z-index:1}.enemy canvas{display:block;margin:0 auto 4px;image-rendering:pixelated}.enemy{position:relative;background:#283b5ad9;border-radius:4px}.battle-party{position:relative;z-index:2}
+
 </style>
 </head>
 <body>
   <main id="app">
     <section id="title-screen" class="screen title-screen">
+      <canvas id="title-art" width="960" height="540"></canvas>
       <div class="title-card">
         <p class="eyebrow">MAGIC ACADEMY ADVENTURE</p>
         <h1>魔法学校<br>クロニクル</h1>
@@ -34,7 +41,7 @@
     <section id="game-screen" class="screen game-screen hidden">
       <header class="topbar"><strong>魔法学校クロニクル</strong><span id="location-label">魔法学院</span><button id="menu-button" aria-label="メニュー">☰ メニュー</button></header>
       <div class="game-layout">
-        <div class="world-frame"><canvas id="world" width="960" height="640" aria-label="魔法学院マップ"></canvas><div id="toast" class="toast"></div></div>
+        <div class="world-frame"><canvas id="world" width="960" height="640" aria-label="魔法学院マップ"></canvas><canvas id="world-fg" width="960" height="640"></canvas><div id="toast" class="toast"></div></div>
         <aside class="side-panel"><h2>ユウキ <small>1年</small></h2><div id="party-hud"></div><div class="controls-note">近くの人や教壇で決定<br>訓練場に入るとバトル</div>
           <div class="touch-controls"><button data-move="up">▲</button><button data-move="left">◀</button><button data-move="down">▼</button><button data-move="right">▶</button></div>
           <button id="interact-button" class="wide">はなす / 決定</button>
@@ -43,7 +50,7 @@
     </section>
 
     <section id="dialogue" class="overlay hidden" role="dialog" aria-modal="true"><div class="dialogue-box"><strong id="dialogue-name"></strong><p id="dialogue-text"></p><button id="dialogue-next">つづける ▶</button></div></section>
-    <section id="menu" class="overlay hidden" role="dialog" aria-modal="true"><div class="panel"><button class="close" data-close="menu">×</button><h2>メニュー</h2><nav class="menu-tabs"><button data-tab="status">ステータス</button><button data-tab="items">アイテム</button><button data-tab="save">セーブ</button></nav><div id="menu-content"></div><div class="menu-footer"><button id="save-button">手動セーブ</button><button id="load-button">手動ロード</button><button id="title-button">タイトルへ</button></div></div></section>
+    <section id="menu" class="overlay hidden" role="dialog" aria-modal="true"><div class="panel"><button class="close" data-close="menu">×</button><h2>メニュー</h2><nav class="menu-tabs"><button data-tab="status">ステータス</button><button data-tab="items">アイテム</button><button data-tab="save">セーブ</button><button data-tab="settings">せってい</button></nav><div id="menu-content"></div><div class="menu-footer"><button id="save-button">手動セーブ</button><button id="load-button">手動ロード</button><button id="title-button">タイトルへ</button></div></div></section>
     <section id="battle" class="overlay hidden" role="dialog" aria-modal="true"><div class="battle-panel"><div class="battle-heading"><span>訓練バトル</span><span id="turn-label"></span></div><div id="battle-field"></div><div id="battle-log" aria-live="polite"></div><div id="battle-actions"></div></div></section>
     <section id="game-over" class="overlay hidden"><div class="panel game-over-panel"><h2>ゲームオーバー</h2><p>みんな力尽きてしまった……。</p><button id="retry-save">セーブから再開</button><button id="game-over-title">タイトルへ</button></div></section>
     <div id="confirm-dialog" class="overlay hidden" role="dialog" aria-modal="true"><div class="panel"><h2 id="confirm-title"></h2><p id="confirm-text"></p><div class="confirm-actions"><button id="confirm-yes">はい</button><button id="confirm-no">いいえ</button></div></div></div>
@@ -56,18 +63,18 @@
     start: { x: 14, y: 10 },
     party: [
       { id: 'yuuki', name: 'ユウキ', role: '万能型', level: 1, exp: 0, hp: 110, maxHp: 110, mp: 24, maxMp: 24, atk: 18, def: 14, mag: 16, spd: 17, spells: [] },
-      { id: 'leo', name: 'レオ', role: '回復・補助', level: 1, exp: 0, hp: 96, maxHp: 96, mp: 28, maxMp: 28, atk: 14, def: 13, mag: 20, spd: 13, spells: ['ヒール'] },
-      { id: 'milia', name: 'ミリア', role: '弱体・攻撃', level: 1, exp: 0, hp: 84, maxHp: 84, mp: 32, maxMp: 32, atk: 12, def: 10, mag: 24, spd: 20, spells: [] }
+      { id: 'leo', sprite: 'leo', name: 'レオ', role: '回復・補助', level: 1, exp: 0, hp: 96, maxHp: 96, mp: 28, maxMp: 28, atk: 14, def: 13, mag: 20, spd: 13, spells: ['ヒール'] },
+      { id: 'milia', sprite: 'milia', name: 'ミリア', role: '弱体・攻撃', level: 1, exp: 0, hp: 84, maxHp: 84, mp: 32, maxMp: 32, atk: 12, def: 10, mag: 24, spd: 20, spells: [] }
     ],
     npcs: [
-      { id: 'alberto', name: '学院長アルベルト', x: 14, y: 8, color: '#e6ba64', lines: ['よく来たね、ユウキ。ここは魔法学院の中央ホールだ。', '学びと仲間との出会いを大切に。まずは教室で基礎魔法を学ぶといい。'] },
-      { id: 'elena', name: '副学院長エレナ', x: 17, y: 9, color: '#bd91e8', lines: ['学院の施設は自由に見て回ってくださいね。', '訓練場では魔法生物と実戦形式の練習ができます。準備を整えてから挑戦しましょう。'] },
-      { id: 'leo', name: 'レオ', x: 12, y: 11, color: '#73b6ed', lines: ['やあ、ユウキ！ぼくは授業でヒールを覚えたんだ。', '戦いで傷ついた仲間を回復するよ。困ったときは任せて！'] },
-      { id: 'milia', name: 'ミリア', x: 16, y: 11, color: '#ef91bd', lines: ['私はミリア。魔力の流れを読むのが得意なの。', '敵の特徴を見極めれば、無駄のない戦い方ができるわ。'] }
+      { id: 'alberto', sprite: 'alberto', name: '学院長アルベルト', x: 14, y: 8, color: '#e6ba64', lines: ['よく来たね、ユウキ。ここは魔法学院の中央ホールだ。', '学びと仲間との出会いを大切に。まずは教室で基礎魔法を学ぶといい。'] },
+      { id: 'elena', sprite: 'elena', name: '副学院長エレナ', x: 17, y: 9, color: '#bd91e8', lines: ['学院の施設は自由に見て回ってくださいね。', '訓練場では魔法生物と実戦形式の練習ができます。準備を整えてから挑戦しましょう。'] },
+      { id: 'leo', sprite: 'leo', name: 'レオ', x: 12, y: 11, color: '#73b6ed', lines: ['やあ、ユウキ！ぼくは授業でヒールを覚えたんだ。', '戦いで傷ついた仲間を回復するよ。困ったときは任せて！'] },
+      { id: 'milia', sprite: 'milia', name: 'ミリア', x: 16, y: 11, color: '#ef91bd', lines: ['私はミリア。魔力の流れを読むのが得意なの。', '敵の特徴を見極めれば、無駄のない戦い方ができるわ。'] }
     ],
     enemies: [
-      { name: 'まほうスライム', icon: '💧', hp: 58, atk: 15, def: 7, mag: 11, spd: 8, exp: 22 },
-      { name: 'こもりオオカミ', icon: '🐺', hp: 76, atk: 20, def: 10, mag: 5, spd: 17, exp: 30 }
+      { name: 'まほうスライム', sprite: 'slime', icon: '💧', hp: 58, atk: 15, def: 7, mag: 11, spd: 8, exp: 22 },
+      { name: 'こもりオオカミ', sprite: 'wolf', icon: '🐺', hp: 76, atk: 20, def: 10, mag: 5, spd: 17, exp: 30 }
     ],
     spells: {
       'フレイム': { type: 'damage', element: '火', cost: 4, power: 31, description: '火属性の魔法ダメージ' },
@@ -83,6 +90,44 @@
     messages: { lesson: '授業を受けて、基礎魔法「フレイム」を習得した！', review: '今日は復習にしましょう。フレイムはもう習得済みです。', victory: '訓練バトルに勝利！経験値を獲得した。' }
   };
   root.MahouData = DATA;
+})(window);
+
+</script>
+  <script>
+(function (root) {
+  'use strict';
+  const down = ["................",".....HHHHHH.....","....HHHHHHHH....","...HHHHHHHHHH...","...HHSSSSSSHH...","...HHSSSSSSHH...","...HHSESSESHH...","...HHSSSSSSHH...","....SSSSSSSS....",".....SSSSSS.....","...RRRRRRRRRR...","..RRRRTTTTRRRR..","..RRRRTTTTRRRR..","..SRRRRRRRRRRS..","..SRRRrrrrRRRS..","...RRRrrrrRRR...","...RRRRRRRRRR...","...TTTTTTTTTT..."];
+  const up = ["................",".....HHHHHH.....","....HHHHHHHH....","...HHHHHHHHHH...","...HHHHHHHHHH...","...HHHHHHHHHH...","...HHhhhhhhHH...","...HHHHHHHHHH...","....HHHHHHHH....","...RRRRRRRRRR...","..RRRRRRRRRRRR..","..RRRRRRRRRRRR..","..RRRRRTTRRRRR..","..SRRRRRRRRRRS..","..SRRRrrrrRRRS..","...RRRrrrrRRR...","...RRRRRRRRRR...","...TTTTTTTTTT..."];
+  const left = ["................",".....HHHHHH.....","....HHHHHHHH....","...HHHHHHHHHH...","...HHHHSSSSHH...","...HHHSSSSSH....","...HHHESSSSH....","...HHHSSSSSH....","....SSSSSSS.....",".....SSSSS......","....RRRRRRRR....","....RRRRTTRR....","....RRRRRRRR....","....RRRSRRRR....","....RRRrrrrR....","....RRrrrrRR....","....RRRRRRRR....","....TTTTTTTT...."];
+  const legsA = ["....PP....PP....","...FFF....FFF..."];
+  const legsB = [".....PP...PP....","....FFF...FFF..."];
+  const leftLegsA = ["....PP...PP.....","...FFF....FFF..."];
+  const leftLegsB = [".....PPPP.......",".....FFFF......."];
+  const palettes = {
+    yuuki:{H:'#4a3226',h:'#2e1f16',S:'#f3d4b6',E:'#20222e',R:'#493c81',r:'#352c61',T:'#f0c95f',P:'#3a3f4a',F:'#5a3d26'},
+    leo:{H:'#8a5a24',h:'#5f3d16',S:'#f3d4b6',E:'#20222e',R:'#2e6da4',r:'#20507a',T:'#ffe9a8',P:'#3a3f4a',F:'#4a3226'},
+    milia:{H:'#d1608f',h:'#9c3f66',S:'#f7dbc4',E:'#33222e',R:'#7a3b69',r:'#592a4c',T:'#ffd98a',P:'#41334a',F:'#4a2c3a',longHair:true},
+    alberto:{H:'#d8d8e0',h:'#a8a8b8',S:'#eecfa8',E:'#20222e',R:'#96762e',r:'#6f5620',T:'#ffe9a8',P:'#4a4038',F:'#3a2e22',beard:true,beardColor:'#e8e8f0'},
+    elena:{H:'#8a63c9',h:'#5f3f96',S:'#f7dbc4',E:'#262038',R:'#3f5f8a',r:'#2c4465',T:'#f0c95f',P:'#3a3f4a',F:'#3a2c4a',longHair:true}
+  };
+  const enemyMaps = {
+    slime:["..........BBBB..........","........BBBBBBBB........",".......BBBBBBBBBB.......","......BBBBBBBBBBBB......",".....BBBBBBBBBBBBBB.....","....BBBWWBBBBBBBBBBB....","....BBWWBBBBBBBBBBBB....","...BBBBBBBBBBBBBBBBBB...","...BBBBEEBBBBEEBBBBBB...","...BBBBBBBBBBBBBBBBBB...","..BBBBBBBBBBBBBBBBBBBB..","..BBBBBBBBBMMBBBBBBBBB..","..BBBBBBBBBBBBBBBBBBBB..","..bbbbBBBBBBBBBBBBbbbb..",".bbbbbbbbbbbbbbbbbbbbbb."],
+    wolf:["..GG................GG..","..GGG..............GGG..","..GIGG............GGIG..","..GGGGG........GGGGG....","..GGGGGGGGGGGGGGGGGGG...",".GGGGGGGGGGGGGGGGGGGGG..",".GGGGGGGGGGGGGGGGGGGGG..",".GGGEEGGGGGGGGGGEEGGGG..",".GGGGGGGGGGGGGGGGGGGGG..","..GGGGGWWWWWWWWGGGGG....","..GGGGWWWWNNNNWWWWGGGG..","..GGGGGWWWWWWWWGGGGG....","...GGGGGGGGGGGGGGGG.....","..GGGGGGGGGGGGGGGGGGGG..",".GGgGGGGGGGGGGGGGGGGgGG.",".GGGGGGGGGGGGGGGGGGGGGG.",".GGGGGGgGGGGGGGGgGGGGGG.","..FFFF....FFFF....FFFF..","..FFFF....FFFF....FFFF.."]
+  };
+  const enemyColors={slime:{B:'#5bb5e8',b:'#2f7fb8',W:'#e6f7ff',E:'#14324a',M:'#14486b'},wolf:{G:'#98a2ab',g:'#6e777f',W:'#eef2f5',E:'#1c2733',N:'#2a2f36',I:'#d98a94',F:'#565e66'}};
+  function paint(ctx, rows, colors, x, y, scale) { rows.forEach((row, yy) => Array.from(row).forEach((c, xx) => { if(c!=='.'&&colors[c]) {ctx.fillStyle=colors[c];ctx.fillRect(x+xx*scale,y+yy*scale,scale,scale);} })); }
+  function drawCharacter(ctx,id,dir,frame,cx,feetY,scale) {
+    const pal=palettes[id]||palettes.yuuki, face=dir==='up'?up:dir==='left'||dir==='right'?left:down;
+    const rows=face.map(r=>Array.from(r));
+    if(pal.longHair){if(dir==='down'||dir==='up'){for(let y=4;y<(dir==='down'?12:14);y++){rows[y][1]='H';rows[y][14]='H';}}else{for(let y=5;y<=10;y++){rows[y][12]='H';rows[y][13]='H';}}}
+    if(pal.beard&&dir==='down'){for(let x=4;x<=11;x++)rows[8][x]='B';for(let x=5;x<=10;x++)rows[9][x]='B';for(let x=6;x<=9;x++)rows[10][x]='B';}
+    const colors={...pal,B:pal.beardColor||'#fff'}; const baseX=Math.round(cx-8*scale), baseY=Math.round(feetY-20*scale);
+    let legs=((dir==='left'||dir==='right')?(frame?leftLegsB:leftLegsA):(frame?legsB:legsA)).map(r=>Array.from(r));
+    if(dir==='right') { const all=rows.concat(legs); paint(ctx,all.map(r=>Array.from(r).reverse().join('')),colors,baseX,baseY,scale); }
+    else { paint(ctx,rows.map(r=>r.join('')),colors,baseX,baseY,scale); paint(ctx,legs.map(r=>r.join('')),colors,baseX,baseY+18*scale,scale); }
+  }
+  function drawEnemy(ctx,id,cx,cy,scale){const rows=enemyMaps[id]||enemyMaps.slime;paint(ctx,rows,enemyColors[id]||enemyColors.slime,Math.round(cx-12*scale),Math.round(cy-rows.length*scale/2),scale);}
+  root.MahouSprites={drawCharacter,drawEnemy};
 })(window);
 
 </script>
@@ -107,8 +152,11 @@
     aliveParty() { return this.game.party.filter(c => c.hp > 0); },
     aliveEnemies() { return this.enemies.filter(e => e.hp > 0); },
     render() {
-      document.getElementById('battle-field').innerHTML = `<div class="enemy-list">${this.enemies.map(e => `<div class="enemy ${e.hp <= 0 ? 'dead' : ''}"><div class="emoji">${e.icon}</div><strong>${e.name}</strong><small>HP ${Math.max(0, e.hp)} / ${e.maxHp}</small></div>`).join('')}</div><div class="battle-party">${this.game.party.map(c => `<span>${c.name}<i>HP ${c.hp}/${c.maxHp} · MP ${c.mp}/${c.maxMp}</i></span>`).join('')}</div>`;
+      const field=document.getElementById('battle-field');
+      field.innerHTML = `<canvas id="battle-bg" width="712" height="170"></canvas><div class="enemy-list">${this.enemies.map(e => `<div class="enemy ${e.hp <= 0 ? 'dead' : ''}"><canvas class="enemy-sprite" width="96" height="80" data-sprite="${e.sprite}"></canvas><strong>${e.name}</strong><small>HP ${Math.max(0, e.hp)} / ${e.maxHp}</small></div>`).join('')}</div><canvas id="battle-fx" width="712" height="170"></canvas><div class="battle-party">${this.game.party.map(c => `<span>${c.name}<i>HP ${c.hp}/${c.maxHp} · MP ${c.mp}/${c.maxMp}</i></span>`).join('')}</div>`;
+      this.drawBattleBackground(); field.querySelectorAll('.enemy-sprite').forEach(c=>MahouSprites.drawEnemy(c.getContext('2d'),c.dataset.sprite,48,40,4));
     },
+    drawBattleBackground() { const c=document.getElementById('battle-bg');if(!c)return;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,170);g.addColorStop(0,'#41415f');g.addColorStop(.62,'#d17c69');g.addColorStop(1,'#e8ba78');x.fillStyle=g;x.fillRect(0,0,712,170);x.fillStyle='#333548';for(const [a,b,w,h] of [[55,58,100,48],[210,42,115,64],[440,51,120,55],[590,35,75,70]]){x.fillRect(a,b,w,h);x.fillRect(a+28,b-18,w-56,18);}x.fillStyle='#a77b4c';x.fillRect(0,115,712,55);x.strokeStyle='#e2ba75';x.lineWidth=2;x.beginPath();x.ellipse(356,143,205,40,0,0,Math.PI*2);x.stroke();const glow=x.createRadialGradient(356,90,8,356,90,230);glow.addColorStop(0,'rgba(255,204,126,.22)');glow.addColorStop(1,'rgba(255,204,126,0)');x.fillStyle=glow;x.fillRect(0,0,712,170); },
     beginTurn() {
       if (!this.active) return;
       if (!this.aliveEnemies().length) return this.win();
@@ -160,9 +208,10 @@
     cast(actor, name) {
       const spell = MahouData.spells[name];
       if (actor.mp < spell.cost) { this.log(`${actor.name}はMPが足りない！`); return this.partyAct(actor); }
-      if (spell.type === 'heal') return this.chooseParty(target => { actor.mp -= spell.cost; const amount = Math.min(target.maxHp - target.hp, spell.power + actor.mag); target.hp += amount; this.log(`${actor.name}は${name}を唱えた。${target.name}のHPが${amount}回復！`); this.render(); this.afterAction(); });
-      this.chooseEnemy(target => { actor.mp -= spell.cost; const amount = Math.max(1, spell.power + actor.mag - target.def + this.rand(0, 5)); target.hp = Math.max(0, target.hp - amount); this.log(`${actor.name}は${name}を唱えた！ ${target.name}に火属性${amount}ダメージ。`); this.render(); this.afterAction(); });
+      if (spell.type === 'heal') return this.chooseParty(target => { actor.mp -= spell.cost; const amount = Math.min(target.maxHp - target.hp, spell.power + actor.mag); target.hp += amount; this.log(`${actor.name}は${name}を唱えた。${target.name}のHPが${amount}回復！`); this.render(); this.playEffect('heal'); this.afterAction(); });
+      this.chooseEnemy(target => { actor.mp -= spell.cost; const amount = Math.max(1, spell.power + actor.mag - target.def + this.rand(0, 5)); target.hp = Math.max(0, target.hp - amount); this.log(`${actor.name}は${name}を唱えた！ ${target.name}に火属性${amount}ダメージ。`); this.render(); this.playEffect('fire'); this.afterAction(); });
     },
+    playEffect(type) { const canvas=document.getElementById('battle-fx');if(!canvas)return;const ctx=canvas.getContext('2d'),start=performance.now(),colors=type==='fire'?['#ff4d27','#ffb52e','#fff07b']:['#69e58a','#c4ffd0','#ffffff'],parts=Array.from({length:type==='fire'?26:18},(_,i)=>({x:type==='fire'?100+(i*83)%520:120+(i*47)%470,y:type==='fire'?105+(i%4)*8:150,v:1+(i%4)*.45,r:2+i%3}));const step=now=>{const t=(now-start)/600;ctx.clearRect(0,0,712,170);if(t>=1)return;parts.forEach((p,i)=>{ctx.globalAlpha=1-t;ctx.fillStyle=colors[i%colors.length];ctx.fillRect(p.x+Math.sin(t*7+i)*5,p.y-t*80*p.v,p.r,p.r);});ctx.globalAlpha=1;requestAnimationFrame(step);};requestAnimationFrame(step); },
     useItem(actor, target, name) { const item = MahouData.items[name]; if (target.hp >= target.maxHp) { this.log(`${target.name}のHPは満タンだ。`); return this.afterAction(); } this.game.items[name]--; const amount = Math.min(target.maxHp - target.hp, item.heal); target.hp += amount; this.log(`${actor.name}は${name}を使った。${target.name}のHPが${amount}回復！`); this.render(); this.afterAction(); },
     enemyAct(enemy) { const target = this.aliveParty()[Math.floor(Math.random() * this.aliveParty().length)]; const damage = Math.max(1, enemy.atk - target.def + this.rand(0, 5)); const dealt = this.defending[target.id] ? Math.ceil(damage / 2) : damage; target.hp = Math.max(0, target.hp - dealt); this.log(`${enemy.name}の攻撃！ ${target.name}は${dealt}ダメージを受けた。`); this.render(); setTimeout(() => this.nextAction(), 420); },
     afterAction() { this.render(); setTimeout(() => this.nextAction(), 220); },
@@ -181,9 +230,9 @@
   const D = MahouData, TILE = D.tileSize, W = D.mapWidth, H = D.mapHeight;
   const $ = id => document.getElementById(id);
   const game = {
-    party: [], items: {}, pos: { ...D.start }, learnedLesson: false, year: 1, moving: false, dialogue: null, dialogIndex: 0, lastInteract: 0, menuTab: 'status', battle: false, toastTimer: 0,
+    party: [], items: {}, pos: { ...D.start }, facing: 'down', walkFrame: 0, settings: { blur: true }, learnedLesson: false, year: 1, moving: false, dialogue: null, dialogIndex: 0, lastInteract: 0, menuTab: 'status', battle: false, toastTimer: 0,
     init() {
-      this.canvas = $('world'); this.ctx = this.canvas.getContext('2d'); this.buildMap();
+      this.canvas = $('world'); this.ctx = this.canvas.getContext('2d'); this.fg = $('world-fg'); this.fgCtx = this.fg.getContext('2d'); this.settings = { blur: true }; try { this.settings.blur = JSON.parse(localStorage.getItem('mahou_settings_v1') || '{"blur":true}')?.blur !== false; } catch (_) {} this.buildMap(); this.buildArt(); this.drawTitleArt(); this.applyBlur();
       $('new-game').onclick = () => this.newGame(); $('continue-game').onclick = () => this.loadAny();
       $('interact-button').onclick = () => this.interact(); $('menu-button').onclick = () => this.openMenu();
       $('dialogue-next').onclick = () => this.nextDialogue();
@@ -196,9 +245,10 @@
       $('confirm-no').onclick = () => $('confirm-dialog').classList.add('hidden');
       $('confirm-yes').onclick = () => { $('confirm-dialog').classList.add('hidden'); if (this.confirmAction) this.confirmAction(); };
       window.addEventListener('keydown', e => this.keydown(e));
-      window.addEventListener('resize', () => this.draw()); this.updateContinue(); this.draw();
+      window.addEventListener('resize', () => this.draw()); this.updateContinue(); this.draw(); this.animate();
     },
     buildMap() {
+      this.TREES = [[3,1],[12,1],[19,1],[26,1],[1,9],[7,10],[22,10],[28,9],[9,16],[20,17]]; this.treeSet = new Set(this.TREES.map(([x,y]) => `${x},${y}`));
       this.tiles = Array.from({ length: H }, (_, y) => Array.from({ length: W }, (_, x) => {
         if (x === 0 || y === 0 || x === W - 1 || y === H - 1) return 'wall';
         for (const [key, area] of Object.entries({ classroom: D.classroom, library: D.library, dorm: D.dorm, shop: D.shop, training: D.training })) if (x >= area.x1 && x <= area.x2 && y >= area.y1 && y <= area.y2) return key;
@@ -228,10 +278,11 @@
       if (this.moving || $('game-screen').classList.contains('hidden') || !$('dialogue').classList.contains('hidden') || !$('menu').classList.contains('hidden') || !$('battle').classList.contains('hidden') || !$('confirm-dialog').classList.contains('hidden')) return;
       const delta = { up:[0,-1],down:[0,1],left:[-1,0],right:[1,0] }[dir]; if (!delta) return;
       const nx = this.pos.x + delta[0], ny = this.pos.y + delta[1];
-      if (nx < 1 || ny < 1 || nx >= W-1 || ny >= H-1 || this.tiles[ny][nx] === 'wall' || this.tiles[ny][nx] === 'door') return;
+      this.facing = dir;
+      if (nx < 1 || ny < 1 || nx >= W-1 || ny >= H-1 || this.tiles[ny][nx] === 'wall' || this.tiles[ny][nx] === 'door' || this.treeSet.has(`${nx},${ny}`)) return;
       if (D.npcs.some(n => n.x === nx && n.y === ny)) return;
       const prevKind = this.tiles[this.pos.y][this.pos.x];
-      this.pos = { x: nx, y: ny }; this.draw(); this.moving = true; setTimeout(() => { this.moving = false; }, 95);
+      this.pos = { x: nx, y: ny }; this.walkFrame ^= 1; this.draw(); this.moving = true; setTimeout(() => { this.moving = false; }, 95);
       if (this.tiles[ny][nx] === 'training' && prevKind !== 'training' && !this.battle) { this.battle = true; this.showConfirm('訓練バトル', '魔法生物との訓練バトルをはじめますか？', () => MahouBattle.start(this), () => { this.battle = false; }); }
     },
     interact() {
@@ -256,7 +307,9 @@
       const el = $('menu-content');
       if (this.menuTab === 'status') el.innerHTML = this.party.map(c => `<div class="status-row"><strong>${c.name} Lv.${c.level}</strong><span>HP ${c.hp}/${c.maxHp} · MP ${c.mp}/${c.maxMp}</span></div><div class="status-details">攻撃 ${c.atk} / 防御 ${c.def} / 魔力 ${c.mag} / 素早さ ${c.spd}<br>習得魔法: ${c.spells.length ? c.spells.join('、') : 'なし'} · 次のLvまで ${Math.max(0,this.expToNext(c.level)-c.exp)} EXP</div>`).join('');
       if (this.menuTab === 'items') el.innerHTML = Object.keys(D.items).map(name => `<div class="item-row"><span>${name} <small>${D.items[name].description}</small></span><span>×${this.items[name] || 0}</span><button data-use-item="${name}">使う</button></div>`).join('') || '<p>アイテムを持っていない。</p>';
+      if (this.menuTab === 'settings') el.innerHTML = `<p>画面のぼかし</p><button id="blur-toggle">ぼかし：${this.settings.blur ? 'ON' : 'OFF'}</button>`;
       if (this.menuTab === 'save') el.innerHTML = '<p>手動セーブで現在の状態を保存します。ロードすると、保存位置から再開します。</p><p>オートセーブは授業習得時と戦闘勝利時に更新されます。</p>';
+      const blurButton = $('blur-toggle'); if (blurButton) blurButton.onclick = () => { this.settings.blur = !this.settings.blur; try { localStorage.setItem('mahou_settings_v1', JSON.stringify(this.settings)); } catch (_) {} this.applyBlur(); this.renderMenu(); };
       el.querySelectorAll('[data-use-item]').forEach(b => b.onclick = () => this.useFieldItem(b.dataset.useItem));
     },
     useFieldItem(name) { if (!this.items[name]) return this.showToast('そのアイテムは持っていない。'); const target = this.party.find(c => c.hp > 0 && c.hp < c.maxHp); if (!target) return this.showToast('回復が必要な仲間はいない。'); this.items[name]--; const amount = Math.min(D.items[name].heal, target.maxHp-target.hp); target.hp += amount; this.renderMenu(); this.renderHud(); this.showToast(`${target.name}のHPが${amount}回復した。`); },
@@ -269,26 +322,48 @@
       try { localStorage.setItem(key, JSON.stringify(data)); this.updateContinue(); if (!auto) this.showToast('手動セーブしました。'); return true; } catch (err) { this.showToast('セーブに失敗しました。'); return false; }
     },
     readSave(key) { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; } catch (_) { return null; } },
-    applySave(data) { if (!data || !Array.isArray(data.party) || !data.pos) return false; this.party = data.party.map(c => ({ ...c, spells: Array.isArray(c.spells) ? [...c.spells] : [] })); this.items = data.items || {}; this.pos = { x: Math.max(1,Math.min(W-2,Number(data.pos.x)||D.start.x)), y: Math.max(1,Math.min(H-2,Number(data.pos.y)||D.start.y)) }; this.learnedLesson = Boolean(data.learnedLesson); this.year = data.year || 1; $('title-screen').classList.add('hidden'); $('game-screen').classList.remove('hidden'); $('menu').classList.add('hidden'); $('game-over').classList.add('hidden'); this.battle = false; this.draw(); this.renderHud(); return true; },
+    applySave(data) { if (!data || !Array.isArray(data.party) || !data.pos) return false; this.party = data.party.map(c => ({ ...c, spells: Array.isArray(c.spells) ? [...c.spells] : [] })); this.items = data.items || {}; this.pos = { x: Math.max(1,Math.min(W-2,Number(data.pos.x)||D.start.x)), y: Math.max(1,Math.min(H-2,Number(data.pos.y)||D.start.y)) }; if (this.treeSet && this.treeSet.has(this.pos.x + ',' + this.pos.y)) { const free = [[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy]) => ({ x: this.pos.x + dx, y: this.pos.y + dy })).find(p => p.x >= 1 && p.y >= 1 && p.x < W - 1 && p.y < H - 1 && !this.treeSet.has(p.x + ',' + p.y) && this.tiles[p.y][p.x] !== 'wall'); if (free) this.pos = free; }
+      this.learnedLesson = Boolean(data.learnedLesson); this.year = data.year || 1; $('title-screen').classList.add('hidden'); $('game-screen').classList.remove('hidden'); $('menu').classList.add('hidden'); $('game-over').classList.add('hidden'); this.battle = false; this.draw(); this.renderHud(); return true; },
     loadManual() { const data = this.readSave('mahou_save_manual'); if (!data || !this.applySave(data)) return this.showToast('手動セーブがありません。'); this.showToast('手動セーブを読み込みました。'); },
     loadAny(showToast = true) { const manual = this.readSave('mahou_save_manual'), auto = this.readSave('mahou_save_auto'); const data = manual && auto ? ((auto.savedAt || 0) > (manual.savedAt || 0) ? auto : manual) : (manual || auto); if (!data || !this.applySave(data)) { if (showToast) this.showToast('読み込めるセーブがありません。'); return false; } if (showToast) this.showToast('セーブから再開しました。'); return true; },
     showToast(text) { const el = $('toast'); el.textContent = text; el.classList.add('show'); clearTimeout(this.toastTimer); this.toastTimer = setTimeout(() => el.classList.remove('show'), 1800); },
+    buildArt() {
+      this.mapBase = document.createElement('canvas'); this.mapBase.width=this.canvas.width; this.mapBase.height=this.canvas.height; this.baseCtx=this.mapBase.getContext('2d');
+      this.mapTall = document.createElement('canvas'); this.mapTall.width=this.canvas.width; this.mapTall.height=this.canvas.height; this.tallCtx=this.mapTall.getContext('2d');
+      const b=this.baseCtx,t=this.tallCtx;
+      for(let y=0;y<H;y++) for(let x=0;x<W;x++) this.drawTile(b,this.tiles[y][x],x*TILE,y*TILE,x,y);
+      for(const area of [D.classroom,D.library,D.dorm,D.shop]) {
+        const x=area.x1*TILE,y=area.y1*TILE,w=(area.x2-area.x1+1)*TILE,h=(area.y2-area.y1+1)*TILE;
+        b.fillStyle='rgba(0,0,0,.28)';b.fillRect(x+8,y+10,w,h);
+        t.fillStyle='#493b43';t.fillRect(x,y-8,w,10);t.fillStyle='#b58a59';t.fillRect(x,y-8,w,4);
+        t.fillStyle='#5c5362';t.fillRect(x,y,w,9);t.fillRect(x,y+h-19,w,22);
+        for(let wx=x+40;wx<x+w-20;wx+=92){t.fillStyle='#463d48';t.fillRect(wx,y+15,28,29);t.fillStyle='#f4c977';t.fillRect(wx+4,y+19,20,21); const g=b.createRadialGradient(wx+14,y+60,2,wx+14,y+60,58);g.addColorStop(0,'rgba(255,190,95,.16)');g.addColorStop(1,'rgba(255,190,95,0)');b.fillStyle=g;b.fillRect(wx-44,y+25,116,80);}
+      }
+      this.TREES.forEach(([gx,gy])=>{const x=gx*TILE+16,y=gy*TILE+18;b.fillStyle='rgba(0,0,0,.28)';b.beginPath();b.ellipse(x+8,y+7,22,9,0,0,Math.PI*2);b.fill();b.fillStyle='#60432a';b.fillRect(x-4,y-15,9,28); for(let i=0;i<18;i++){const a=((i*37+gx*13+gy*19)%97)/97*Math.PI*2,r=10+((i*17)%35),cx=x+Math.cos(a)*r,cy=y-24+Math.sin(a)*r*.7;t.fillStyle=['#174d37','#236b43','#39804b'][i%3];t.fillRect(Math.round(cx/4)*4,Math.round(cy/4)*4,8,8);}});
+      this.fgArt=document.createElement('canvas');this.fgArt.width=960;this.fgArt.height=640;const f=this.fgArt.getContext('2d'); for(const [x,y] of [[-18,590],[90,640],[870,640],[970,590],[930,-10],[20,-10]]){for(let i=0;i<24;i++){f.fillStyle=['#172d2c','#203a32','#294536'][i%3];f.beginPath();f.arc(x+((i*29)%130)-50,y+((i*37)%85)-40,14+(i%4)*6,0,Math.PI*2);f.fill();}}
+      this.particles=Array.from({length:36},(_,i)=>({x:(i*173+47)%960,y:(i*97+23)%640,phase:i*1.71}));
+    },
+    applyBlur(){ if(this.fg) this.fg.closest('.world-frame').classList.toggle('no-blur',!this.settings.blur); },
+    drawTitleArt(){const c=$('title-art'),x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,540);g.addColorStop(0,'#101a36');g.addColorStop(.62,'#9a5862');g.addColorStop(1,'#f2a566');x.fillStyle=g;x.fillRect(0,0,960,540);for(let i=0;i<70;i++){x.fillStyle=`rgba(255,240,200,${.3+(i%4)*.1})`;x.fillRect((i*137)%960,(i*71)%260,2,2);}x.fillStyle='#f9dda0';x.beginPath();x.arc(760,115,38,0,7);x.fill();x.fillStyle='#20243a';x.fillRect(0,365,960,175);for(const [bx,by,bw,bh] of [[120,250,170,180],[320,210,150,220],[500,270,180,160],[690,190,170,230]]){x.fillRect(bx,by,bw,bh);x.fillRect(bx+35,by-60,bw-70,60);x.beginPath();x.moveTo(bx+20,by-60);x.lineTo(bx+bw/2,by-120);x.lineTo(bx+bw-20,by-60);x.fill();for(let wx=bx+35;wx<bx+bw-15;wx+=42){x.fillStyle='#ffc979';x.fillRect(wx,by+35,12,20);}x.fillStyle='#20243a';}x.fillStyle='#11182b';x.fillRect(0,480,960,60);},
+    animate(){this.animTime=(this.animTime||0)+1;this.draw();requestAnimationFrame(()=>this.animate());},
     draw() {
-      if (!this.ctx) return; const ctx = this.ctx; ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-      for (let y=0;y<H;y++) for(let x=0;x<W;x++) { const kind=this.tiles[y][x], px=x*TILE, py=y*TILE; this.drawTile(ctx,kind,px,py,x,y); }
-      this.drawSigns(ctx);
-      D.npcs.forEach(n => { const x=n.x*TILE+TILE/2,y=n.y*TILE+TILE/2; ctx.fillStyle='#111827';ctx.beginPath();ctx.ellipse(x,y+8,11,5,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=n.color;ctx.fillRect(x-8,y-14,16,22);ctx.fillStyle='#f0d3b0';ctx.beginPath();ctx.arc(x,y-19,7,0,Math.PI*2);ctx.fill();ctx.fillStyle='#202238';ctx.fillRect(x-6,y-22,12,5); });
-      const px=this.pos.x*TILE+TILE/2,py=this.pos.y*TILE+TILE/2;ctx.fillStyle='#111827';ctx.beginPath();ctx.ellipse(px,py+8,11,5,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f0c95f';ctx.fillRect(px-8,py-14,16,22);ctx.fillStyle='#f3d4b6';ctx.beginPath();ctx.arc(px,py-19,7,0,Math.PI*2);ctx.fill();ctx.fillStyle='#493c81';ctx.fillRect(px-8,py-24,16,6);
+      if(!this.ctx||!this.mapBase)return;const c=this.ctx;c.clearRect(0,0,960,640);c.drawImage(this.mapBase,0,0);this.drawSigns(c);
+      const actors=D.npcs.map(n=>({x:n.x,y:n.y,id:n.sprite})).concat([{x:this.pos.x,y:this.pos.y,id:'yuuki',player:true}]).sort((a,b)=>a.y-b.y);
+      actors.forEach(a=>{const cx=a.x*TILE+16,feet=(a.y+1)*TILE-2;c.fillStyle='rgba(0,0,0,.28)';c.beginPath();c.ellipse(cx+5,feet+2,13,5,0,0,Math.PI*2);c.fill();MahouSprites.drawCharacter(c,a.id,a.player?this.facing:'down',a.player?this.walkFrame:0,cx,feet,2);});
+      c.drawImage(this.mapTall,0,0);if(!this.lightGradient){this.lightGradient=c.createLinearGradient(0,0,960,640);this.lightGradient.addColorStop(0,'rgba(255,190,90,.05)');this.lightGradient.addColorStop(1,'rgba(255,190,90,.09)');this.vignette=c.createRadialGradient(480,320,150,480,320,560);this.vignette.addColorStop(0,'rgba(8,8,24,0)');this.vignette.addColorStop(1,'rgba(8,8,24,.20)');}
+      c.fillStyle=this.lightGradient;c.fillRect(0,0,960,640);c.fillStyle=this.vignette;c.fillRect(0,0,960,640);
+      const time=this.animTime||0;this.particles.forEach(p=>{const y=(p.y-time*.16+640)%640;c.fillStyle=`rgba(255,240,200,${.25+(.35*(1+Math.sin(time/35+p.phase)))/2})`;c.fillRect(p.x+Math.sin(time/40+p.phase)*5,y,1+(p.phase%2),1+(p.phase%2));});
+      const mist=c.createLinearGradient(0,0,0,90);mist.addColorStop(0,'rgba(255,255,255,.10)');mist.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=mist;c.fillRect(0,0,960,90);
+      if(this.settings.blur&&this.fgCtx){this.fgCtx.clearRect(0,0,960,640);this.fgCtx.drawImage(this.canvas,0,0,960,46,0,0,960,46);this.fgCtx.drawImage(this.fgArt,0,0);}
       const loc=this.areaAt(this.pos.x,this.pos.y)||'中央ホール';$('location-label').textContent=loc;
     },
     drawTile(ctx,kind,x,y,gx,gy) {
-      const colors={grass:'#416947',classroom:'#927347',library:'#425d7a',dorm:'#775d77',shop:'#77764c',training:'#58634b',hall:'#a09071',wall:'#36445a',door:'#674630'};ctx.fillStyle=colors[kind]||'#416947';ctx.fillRect(x,y,TILE,TILE);
-      ctx.strokeStyle='#00000016';ctx.strokeRect(x,y,TILE,TILE);
-      if(kind==='grass'){ctx.fillStyle='#9bc47655';ctx.fillRect(x+5+(gx*7%15),y+7+(gy*11%14),3,3);}
-      if(['classroom','library','dorm','shop'].includes(kind)){ctx.fillStyle='#171c2a66';ctx.fillRect(x+3,y+4,TILE-6,TILE-8);ctx.fillStyle=kind==='library'?'#d7b474':kind==='shop'?'#d6c06d':'#817fc1';ctx.fillRect(x+6,y+7,TILE-12,4);}
-      if(kind==='training'){ctx.strokeStyle='#aab88755';ctx.beginPath();ctx.arc(x+16,y+16,9,0,Math.PI*2);ctx.stroke();}
-      if(kind==='wall'){ctx.fillStyle='#64738b';ctx.fillRect(x+2,y+4,28,5);ctx.fillRect(x+2,y+19,28,5);}
-      if(kind==='door'){ctx.fillStyle='#b88652';ctx.fillRect(x+6,y+3,20,29);ctx.fillStyle='#f6d87d';ctx.fillRect(x+21,y+16,2,2);}
+      const seed=(gx*73856093^gy*19349663)>>>0;const colors={grass:'#294f39',classroom:'#876743',library:'#594d55',dorm:'#715766',shop:'#776746',training:'#92784f',hall:'#888579',wall:'#394554',door:'#60432d'};ctx.fillStyle=colors[kind]||colors.grass;ctx.fillRect(x,y,TILE,TILE);
+      if(kind==='grass'){for(let i=0;i<5;i++){const px=x+((seed+i*31)%30),py=y+((seed>>>3+i*17)%30);ctx.fillStyle=i%2?'#47734a':'#355c3e';ctx.fillRect(px,py,2,3);}}
+      else if(kind==='hall'||kind==='wall'){ctx.strokeStyle='#202a3266';ctx.strokeRect(x,y,TILE,TILE);ctx.fillStyle='#a8a39755';ctx.fillRect(x+((gx%2)*16)+2,y+4,11,2);ctx.fillRect(x+4,y+19,19,2);}
+      else if(['classroom','library','dorm','shop'].includes(kind)){ctx.fillStyle='#251d2266';for(let i=0;i<4;i++)ctx.fillRect(x,y+i*9,TILE,1);for(let i=0;i<4;i++)ctx.fillRect(x+((seed+i*9)%30),y+((seed>>>2+i*7)%30),2,1);if(kind==='library'){ctx.fillStyle='#80614c';ctx.fillRect(x,y+14,TILE,4);}}
+      else if(kind==='training'){ctx.fillStyle='#aa9064';for(let i=0;i<5;i++)ctx.fillRect(x+(seed+i*7)%30,y+(seed>>>2+i*11)%30,2,2);ctx.strokeStyle='#d0b27a88';ctx.beginPath();ctx.arc(x+16,y+16,9,0,Math.PI*2);ctx.stroke();}
+      else if(kind==='door'){ctx.fillStyle='#9a6d3c';ctx.fillRect(x+6,y+3,20,29);ctx.fillStyle='#d5aa57';ctx.fillRect(x+21,y+16,2,3);}
     },
     drawSigns(ctx) { const signs=[['教室',5,2],['図書館',24,2],['寮',5,17],['ショップ',24,17],['訓練場',14,17],['中央ホール',14,6]];ctx.font='bold 15px sans-serif';ctx.textAlign='center';signs.forEach(([t,x,y])=>{const px=x*TILE+16,py=y*TILE+16;ctx.fillStyle='#101726cc';ctx.fillRect(px-44,py-12,88,24);ctx.strokeStyle='#e6d29a';ctx.strokeRect(px-44,py-12,88,24);ctx.fillStyle='#fff1c7';ctx.fillText(t,px,py+5);}); },
   };
