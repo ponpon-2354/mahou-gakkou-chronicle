@@ -14,12 +14,15 @@
 @media (max-height:500px){.side-panel{font-size:.78rem;padding:10px}.member-card{padding:6px 0;font-size:.74rem}.controls-note{font-size:.7rem;margin:10px 0;line-height:1.5}.touch-controls{grid-template-columns:repeat(3,34px);grid-template-rows:repeat(2,32px);margin:10px auto 8px}.side-panel h2{font-size:1rem}}
 .panel,.battle-panel,.dialogue-box{max-height:calc(100dvh - 36px);overflow-y:auto}
 
+.diff-row{display:flex;justify-content:center;gap:8px;margin:-12px 0 18px}.diff-row button.selected,.equip-characters button.selected{background:#806b3d;border-color:var(--gold);box-shadow:0 0 0 2px #f4cf7840}.equip-characters{display:flex;gap:8px;margin:10px 0}.equip-row,.shop-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #394963}.equip-row button,.shop-row button{padding:.45rem .7rem;white-space:nowrap}.shop-row span:first-child{flex:1}#gold-label,#shop-gold{color:var(--gold);font-weight:700;padding:8px 0;border-top:1px solid #42516b}.status-details{margin-bottom:12px}
+
 /* visual remake layers */
 .title-screen{position:relative;isolation:isolate;background:#171b32;overflow:hidden}.title-screen>#title-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;image-rendering:pixelated}.title-screen>.title-card{z-index:1}.title-card{position:relative;background:#131e32df;border-radius:4px;box-shadow:0 0 0 5px #19253ddd,0 0 0 7px #8195bb,0 24px 90px #0009}
 #world-fg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;filter:blur(2px);z-index:2;image-rendering:pixelated}.world-frame.no-blur #world-fg{display:none}.world-frame #world{position:relative;z-index:1}
 .dialogue-box,.panel,.battle-panel{box-shadow:inset 0 0 0 3px #18243a,inset 0 0 0 4px #526583,0 20px 70px #0009;border-radius:5px}
 #battle-field{position:relative;min-height:170px;overflow:hidden}#battle-bg,#battle-fx{position:absolute;inset:0;width:100%;height:170px;pointer-events:none;image-rendering:pixelated}#battle-bg{z-index:0}#battle-fx{z-index:3}.enemy-list{position:relative;z-index:1}.enemy canvas{display:block;margin:0 auto 4px;image-rendering:pixelated}.enemy{position:relative;background:#283b5ad9;border-radius:4px}.battle-party{position:relative;z-index:2}
 
+.quest-row{position:relative;padding:12px 110px 12px 0;border-bottom:1px solid #394963;min-height:88px}.quest-row strong{color:var(--ink)}.quest-row p{margin:5px 0;color:var(--muted);font-size:.88rem}.quest-type{margin-left:10px;color:var(--gold);font-size:.82rem}.quest-status{color:#c5d2e8;font-size:.86rem}.quest-row button{position:absolute;right:0;top:50%;transform:translateY(-50%)}
 </style>
 </head>
 <body>
@@ -34,6 +37,7 @@
           <button id="new-game">はじめから</button>
           <button id="continue-game">つづきから</button>
         </div>
+        <div class="diff-row" aria-label="難易度"><button data-diff="EASY">EASY</button><button data-diff="NORMAL" class="selected">NORMAL</button><button data-diff="HARD">HARD</button></div>
         <p class="hint">キーボード: 矢印 / WASD 移動・Enter 決定・Esc メニュー</p>
       </div>
     </section>
@@ -42,7 +46,7 @@
       <header class="topbar"><strong>魔法学校クロニクル</strong><span id="location-label">魔法学院</span><button id="menu-button" aria-label="メニュー">☰ メニュー</button></header>
       <div class="game-layout">
         <div class="world-frame"><canvas id="world" width="960" height="640" aria-label="魔法学院マップ"></canvas><canvas id="world-fg" width="960" height="640"></canvas><div id="toast" class="toast"></div></div>
-        <aside class="side-panel"><h2>ユウキ <small>1年</small></h2><div id="party-hud"></div><div class="controls-note">近くの人や教壇で決定<br>訓練場に入るとバトル</div>
+        <aside class="side-panel"><h2>ユウキ <small>1年</small></h2><div id="party-hud"></div><div id="gold-label">所持金 0 G</div><div class="controls-note">近くの人や教壇で決定<br>訓練場に入るとバトル</div>
           <div class="touch-controls"><button data-move="up">▲</button><button data-move="left">◀</button><button data-move="down">▼</button><button data-move="right">▶</button></div>
           <button id="interact-button" class="wide">はなす / 決定</button>
         </aside>
@@ -50,7 +54,9 @@
     </section>
 
     <section id="dialogue" class="overlay hidden" role="dialog" aria-modal="true"><div class="dialogue-box"><strong id="dialogue-name"></strong><p id="dialogue-text"></p><button id="dialogue-next">つづける ▶</button></div></section>
-    <section id="menu" class="overlay hidden" role="dialog" aria-modal="true"><div class="panel"><button class="close" data-close="menu">×</button><h2>メニュー</h2><nav class="menu-tabs"><button data-tab="status">ステータス</button><button data-tab="items">アイテム</button><button data-tab="save">セーブ</button><button data-tab="settings">せってい</button></nav><div id="menu-content"></div><div class="menu-footer"><button id="save-button">手動セーブ</button><button id="load-button">手動ロード</button><button id="title-button">タイトルへ</button></div></div></section>
+    <section id="menu" class="overlay hidden" role="dialog" aria-modal="true"><div class="panel"><button class="close" data-close="menu">×</button><h2>メニュー</h2><nav class="menu-tabs"><button data-tab="status">ステータス</button><button data-tab="equip">そうび</button><button data-tab="items">アイテム</button><button data-tab="save">セーブ</button><button data-tab="settings">せってい</button></nav><div id="menu-content"></div><div class="menu-footer"><button id="save-button">手動セーブ</button><button id="load-button">手動ロード</button><button id="title-button">タイトルへ</button></div></div></section>
+    <section id="quest-panel" class="overlay hidden" role="dialog" aria-modal="true"><div class="panel"><button class="close" data-close="quest-panel">×</button><h2>クエスト掲示板</h2><div id="quest-content"></div></div></section>
+    <section id="shop" class="overlay hidden" role="dialog" aria-modal="true"><div class="panel"><button class="close" data-close="shop">×</button><h2>学院ショップ</h2><div id="shop-gold"></div><nav class="menu-tabs"><button data-shop-mode="buy">買う</button><button data-shop-mode="sell">売る</button><button data-shop-mode="exit">出る</button></nav><div id="shop-content"></div></div></section>
     <section id="battle" class="overlay hidden" role="dialog" aria-modal="true"><div class="battle-panel"><div class="battle-heading"><span>訓練バトル</span><span id="turn-label"></span></div><div id="battle-field"></div><div id="battle-log" aria-live="polite"></div><div id="battle-actions"></div></div></section>
     <section id="game-over" class="overlay hidden"><div class="panel game-over-panel"><h2>ゲームオーバー</h2><p>みんな力尽きてしまった……。</p><button id="retry-save">セーブから再開</button><button id="game-over-title">タイトルへ</button></div></section>
     <div id="confirm-dialog" class="overlay hidden" role="dialog" aria-modal="true"><div class="panel"><h2 id="confirm-title"></h2><p id="confirm-text"></p><div class="confirm-actions"><button id="confirm-yes">はい</button><button id="confirm-no">いいえ</button></div></div></div>
@@ -62,9 +68,9 @@
     tileSize: 32, mapWidth: 30, mapHeight: 20,
     start: { x: 14, y: 10 },
     party: [
-      { id: 'yuuki', name: 'ユウキ', role: '万能型', level: 1, exp: 0, hp: 110, maxHp: 110, mp: 24, maxMp: 24, atk: 18, def: 14, mag: 16, spd: 17, spells: [] },
-      { id: 'leo', sprite: 'leo', name: 'レオ', role: '回復・補助', level: 1, exp: 0, hp: 96, maxHp: 96, mp: 28, maxMp: 28, atk: 14, def: 13, mag: 20, spd: 13, spells: ['ヒール'] },
-      { id: 'milia', sprite: 'milia', name: 'ミリア', role: '弱体・攻撃', level: 1, exp: 0, hp: 84, maxHp: 84, mp: 32, maxMp: 32, atk: 12, def: 10, mag: 24, spd: 20, spells: [] }
+      { id: 'yuuki', name: 'ユウキ', role: '万能型', level: 1, exp: 0, hp: 110, maxHp: 110, mp: 24, maxMp: 24, atk: 18, def: 14, mag: 16, spd: 17, spells: [], equipment: { weapon: null, head: null, body: null, arms: null, accessory: null } },
+      { id: 'leo', sprite: 'leo', name: 'レオ', role: '回復・補助', level: 1, exp: 0, hp: 96, maxHp: 96, mp: 28, maxMp: 28, atk: 14, def: 13, mag: 20, spd: 13, spells: ['ヒール'], equipment: { weapon: null, head: null, body: null, arms: null, accessory: null } },
+      { id: 'milia', sprite: 'milia', name: 'ミリア', role: '弱体・攻撃', level: 1, exp: 0, hp: 84, maxHp: 84, mp: 32, maxMp: 32, atk: 12, def: 10, mag: 24, spd: 20, spells: ['ダーク', 'アタックダウン'], equipment: { weapon: null, head: null, body: null, arms: null, accessory: null } }
     ],
     npcs: [
       { id: 'alberto', sprite: 'alberto', name: '学院長アルベルト', x: 14, y: 8, color: '#e6ba64', lines: ['よく来たね、ユウキ。ここは魔法学院の中央ホールだ。', '学びと仲間との出会いを大切に。まずは教室で基礎魔法を学ぶといい。'] },
@@ -73,14 +79,86 @@
       { id: 'milia', sprite: 'milia', name: 'ミリア', x: 16, y: 11, color: '#ef91bd', lines: ['私はミリア。魔力の流れを読むのが得意なの。', '敵の特徴を見極めれば、無駄のない戦い方ができるわ。'] }
     ],
     enemies: [
-      { name: 'まほうスライム', sprite: 'slime', icon: '💧', hp: 58, atk: 15, def: 7, mag: 11, spd: 8, exp: 22 },
-      { name: 'こもりオオカミ', sprite: 'wolf', icon: '🐺', hp: 76, atk: 20, def: 10, mag: 5, spd: 17, exp: 30 }
+      { id:'slime',name:'まほうスライム',sprite:'slime',icon:'💧',hp:58,atk:15,def:7,mag:11,spd:8,exp:22,element:'水',weak:'火',resist:[],spells:[],ai:'attack',areas:['training','forest'],tier:1 },
+      { id:'wolf',name:'こもりオオカミ',sprite:'wolf',icon:'🐺',hp:76,atk:20,def:10,mag:5,spd:17,exp:30,element:'土',weak:'風',resist:['土'],spells:[],ai:'attack',areas:['training','forest'],tier:1 },
+      { id:'bat',name:'よるコウモリ',sprite:'bat',palette:{B:'#7952a8',b:'#4b326b'},hp:52,atk:17,def:6,mag:9,spd:21,exp:24,element:'闇',weak:'光',resist:['闇'],spells:[],ai:'attack',areas:['forest'],tier:1 },
+      { id:'mushroom',name:'どくキノコ',sprite:'mushroom',palette:{B:'#d87562',b:'#8e403d'},hp:62,atk:11,def:9,mag:13,spd:6,exp:25,element:'土',weak:'火',resist:['水'],spells:['ポイズン'],ai:'support',areas:['forest'],tier:1 },
+      { id:'plant',name:'つたフラワー',sprite:'plant',palette:{B:'#65a956',b:'#356d42'},hp:64,atk:12,def:8,mag:16,spd:9,exp:26,element:'風',weak:'火',resist:['土'],spells:['ウィンド'],ai:'caster',areas:['forest'],tier:1 },
+      { id:'golem',name:'いわゴーレム',sprite:'golem',palette:{B:'#92918e',b:'#5c5c60'},hp:125,atk:20,def:24,mag:8,spd:4,exp:52,element:'土',weak:'水',resist:['雷'],spells:[],ai:'attack',areas:['forest'],tier:2 },
+      { id:'bird',name:'かぜトリ',sprite:'bird',palette:{B:'#69a9df',b:'#326c9b'},hp:70,atk:14,def:8,mag:18,spd:19,exp:34,element:'風',weak:'雷',resist:['風'],spells:['ウィンド'],ai:'caster',areas:['forest'],tier:1 },
+      { id:'ghost',name:'ゆうれい学生',sprite:'ghost',palette:{B:'#b7c4df',b:'#7182a7'},hp:72,atk:12,def:8,mag:20,spd:14,exp:36,element:'闇',weak:'光',resist:['闇'],spells:['ダーク','アタックダウン'],ai:'caster',areas:['forest'],tier:1 },
+      { id:'firelizard',name:'ひトカゲ',sprite:'wolf',palette:{G:'#d97548',g:'#8e3d2b'},hp:88,atk:21,def:11,mag:13,spd:14,exp:42,element:'火',weak:'水',resist:['火'],spells:[],ai:'attack',areas:['forest'],tier:2 },
+      { id:'icemoth',name:'こおりモス',sprite:'bat',palette:{B:'#77d4df',b:'#3b8196'},hp:78,atk:13,def:9,mag:23,spd:15,exp:44,element:'水',weak:'火',resist:['水'],spells:['アイス'],ai:'caster',areas:['forest'],tier:2 },
+      { id:'thunderbee',name:'らいビー',sprite:'bird',palette:{B:'#e6c748',b:'#9a7624'},hp:82,atk:15,def:9,mag:24,spd:21,exp:48,element:'雷',weak:'土',resist:['雷'],spells:['サンダー'],ai:'caster',areas:['forest'],tier:2 },
+      { id:'lightfairy',name:'ひかりフェアリー',sprite:'ghost',palette:{B:'#ffe49a',b:'#d4a94e'},hp:85,atk:13,def:10,mag:24,spd:20,exp:50,element:'光',weak:'闇',resist:['光'],spells:['アタックアップ'],ai:'support',areas:['forest'],tier:2 },
+      { id:'darkimp',name:'やみインプ',sprite:'bat',palette:{B:'#633f7e',b:'#342347'},hp:90,atk:22,def:10,mag:17,spd:27,exp:53,element:'闇',weak:'光',resist:['闇'],spells:[],ai:'attack',areas:['forest'],tier:2 },
+      { id:'aquafrog',name:'みずガエル',sprite:'slime',palette:{B:'#4fae9a',b:'#246d71'},hp:102,atk:19,def:13,mag:14,spd:12,exp:56,element:'水',weak:'雷',resist:['水'],spells:[],ai:'attack',areas:['forest'],tier:2 },
+      { id:'sandworm',name:'すなワーム',sprite:'golem',palette:{B:'#c5a66a',b:'#80633b'},hp:104,atk:25,def:11,mag:10,spd:19,exp:62,element:'土',weak:'風',resist:['火'],spells:[],ai:'attack',areas:['forest'],tier:2 },
+      { id:'stormhawk',name:'あらしタカ',sprite:'bird',palette:{B:'#5a7fc5',b:'#303d79'},hp:110,atk:22,def:12,mag:25,spd:29,exp:70,element:'風',weak:'雷',resist:['風'],spells:['ウィンド','サンダー'],ai:'caster',areas:['forest'],tier:3 },
+      { id:'lavagolem',name:'ようがんゴーレム',sprite:'golem',palette:{B:'#e57843',b:'#852f28'},hp:205,atk:31,def:25,mag:20,spd:8,exp:105,element:'火',weak:'水',resist:['火'],spells:[],ai:'attack',areas:['forest'],tier:3 },
+      { id:'shadowcat',name:'かげネコ',sprite:'wolf',palette:{G:'#55465f',g:'#292233'},hp:125,atk:30,def:15,mag:16,spd:32,exp:90,element:'闇',weak:'光',resist:['闇'],spells:[],ai:'attack',areas:['forest'],tier:3 },
+      { id:'ancientguard',name:'古代の守護装置',sprite:'golem',palette:{B:'#6e91a8',b:'#354959'},hp:220,atk:27,def:30,mag:29,spd:12,exp:120,element:'雷',weak:'土',resist:['雷'],spells:['サンダー'],ai:'caster',areas:['forest'],tier:3 },
+      { id:'treant',name:'もりトレント',sprite:'plant',palette:{B:'#765d3d',b:'#3e6940'},hp:190,atk:24,def:22,mag:25,spd:9,exp:110,element:'土',weak:'火',resist:['水','土'],spells:['ヒール'],ai:'support',areas:['forest'],tier:3 }
     ],
     spells: {
-      'フレイム': { type: 'damage', element: '火', cost: 4, power: 31, description: '火属性の魔法ダメージ' },
-      'ヒール': { type: 'heal', cost: 5, power: 38, description: '味方ひとりのHPを回復' }
+      'フレイム': { id:'flame',type: 'damage', element: '火', cost: 4, power: 31, description: '火属性の魔法ダメージ' },
+      'ヒール': { id:'heal',type: 'heal', cost: 5, power: 38, description: '味方ひとりのHPを回復' },
+      'アクア':{id:'aqua',type:'damage',element:'水',cost:4,power:28,description:'水属性の魔法ダメージ'},'アイス':{id:'ice',type:'damage',element:'水',cost:7,power:43,description:'高威力の水属性魔法'},'ウィンド':{id:'wind',type:'damage',element:'風',cost:4,power:29,description:'風属性の魔法ダメージ'},'ロック':{id:'rock',type:'damage',element:'土',cost:5,power:34,description:'土属性の魔法ダメージ'},'サンダー':{id:'thunder',type:'damage',element:'雷',cost:6,power:39,description:'雷属性の魔法ダメージ'},'シャイン':{id:'shine',type:'damage',element:'光',cost:7,power:43,description:'光属性の魔法ダメージ'},'ダーク':{id:'dark',type:'damage',element:'闇',cost:5,power:35,description:'闇属性の魔法ダメージ'},'バースト':{id:'burst',type:'damage',element:'火',cost:12,power:62,description:'最高威力の火属性魔法'},
+      'ハイヒール':{id:'high_heal',type:'heal',cost:10,power:78,description:'味方ひとりのHPを大きく回復'},'リザレク':{id:'resurrect',type:'revive',cost:14,power:50,description:'戦闘不能の味方をHP50%で蘇生'},'キュア':{id:'cure',type:'cure',cost:4,description:'味方ひとりの毒を治す'},
+      'アタックアップ':{id:'attack_up',type:'buff',stat:'atk',stages:1,turns:3,cost:5,description:'味方の攻撃力を上げる'},'ガードアップ':{id:'guard_up',type:'buff',stat:'def',stages:1,turns:3,cost:5,description:'味方の防御力を上げる'},'マジックアップ':{id:'magic_up',type:'buff',stat:'mag',stages:1,turns:3,cost:5,description:'味方の魔力を上げる'},'アタックダウン':{id:'attack_down',type:'debuff',stat:'atk',stages:-1,turns:3,cost:5,description:'敵の攻撃力を下げる'},'ガードダウン':{id:'guard_down',type:'debuff',stat:'def',stages:-1,turns:3,cost:5,description:'敵の防御力を下げる'},'ウィークン':{id:'weaken',type:'debuff',stat:'atk',secondStat:'def',stages:-1,turns:3,cost:8,description:'敵の攻撃力と防御力を弱める'},'ポイズン':{id:'poison',type:'status',status:'poison',turns:3,cost:5,description:'敵を毒状態にする'}
     },
-    items: { '回復薬': { description: 'HPを60回復', heal: 60 } },
+    items: {
+      '回復薬':{id:'potion',type:'heal',description:'HPを60回復',heal:60,price:30},'上級回復薬':{id:'hi_potion',type:'heal',description:'HPを150回復',heal:150,price:75},'万能回復薬':{id:'full_potion',type:'heal',description:'HPを全回復',heal:'all',price:140},'魔力薬':{id:'ether',type:'mp',description:'MPを30回復',mp:30,price:45},'上級魔力薬':{id:'hi_ether',type:'mp',description:'MPを80回復',mp:80,price:100},'蘇生薬':{id:'revive_item',type:'revive',description:'戦闘不能をHP50%で蘇生',reviveRatio:0.5,price:90},'解毒薬':{id:'antidote',type:'cure',description:'毒を治す',cureStatus:'poison',price:20},'覚醒薬':{id:'awakening',type:'cure',description:'すべての状態異常を治す',cureStatus:'all',price:60},'攻撃の香':{id:'atk_incense',type:'buff',description:'攻撃力を1段階上げる',effect:'atk',price:50},'守りの香':{id:'def_incense',type:'buff',description:'防御力を1段階上げる',effect:'def',price:50},'魔法の香':{id:'mag_incense',type:'buff',description:'魔力を1段階上げる',effect:'mag',price:50},'煙玉':{id:'smoke_bomb',type:'escape',description:'戦闘から確実に逃げる',price:40},'薬草':{id:'herb',type:'material',description:'森に生える薬草',price:12},'どくキノコの胞子':{id:'mushroom_spores',type:'material',description:'毒キノコの胞子',price:18},'魔石':{id:'magic_stone',type:'material',description:'魔力を帯びた石',price:35},'風の羽根':{id:'wind_feather',type:'material',description:'風を宿す羽根',price:24},'ルビー':{id:'ruby',type:'material',description:'売却用の高価な宝石',price:500},'古代の歯車':{id:'ancient_gear',type:'quest',description:'古代装置の歯車',price:null},'忘れ物の本':{id:'lost_book',type:'quest',description:'図書館で探されている本',price:null},'生徒の落とし物':{id:'student_lost_item',type:'quest',description:'生徒が落とした品',price:null}
+    },
+    equipment: {
+      weapon:[
+        { id:'wood_staff', name:'ひのきの杖', price:30, atk:0, def:1, mag:5, spd:0, description:'ひのきで作られた初心者向けの杖。' },
+        { id:'oak_staff', name:'オークの杖', price:90, atk:0, def:2, mag:10, spd:0, description:'丈夫なオーク材を使った杖。' },
+        { id:'mithril_staff', name:'ミスリル杖', price:250, atk:0, def:3, mag:18, spd:1, description:'魔力をよく伝えるミスリル製の杖。' },
+        { id:'rune_staff', name:'ルーン杖', price:600, atk:0, def:5, mag:27, spd:1, description:'古いルーン文字が刻まれた杖。' },
+        { id:'sage_staff', name:'賢者の杖', price:1300, atk:1, def:7, mag:38, spd:2, description:'賢者の知恵が宿る強力な杖。' },
+        { id:'ancient_staff', name:'古代の杖', price:2800, atk:2, def:10, mag:52, spd:3, description:'古代文明の魔力を秘めた杖。' }
+      ],
+      head:[
+        { id:'cloth_hat', name:'布の帽子', price:20, atk:0, def:2, mag:1, spd:0, description:'軽くて手軽な布製の帽子。' },
+        { id:'leather_hat', name:'革の帽子', price:70, atk:0, def:5, mag:2, spd:0, description:'厚手の革で頭を守る帽子。' },
+        { id:'mage_hat', name:'魔導帽', price:210, atk:0, def:5, mag:7, spd:0, description:'魔法使い向けに仕立てた帽子。' },
+        { id:'moon_tiara', name:'月のティアラ', price:520, atk:0, def:7, mag:12, spd:1, description:'月光の魔力を帯びたティアラ。' },
+        { id:'sage_hood', name:'賢者のフード', price:1200, atk:0, def:9, mag:18, spd:1, description:'賢者が愛用した深いフード。' },
+        { id:'star_crown', name:'星の冠', price:2600, atk:1, def:12, mag:25, spd:2, description:'星々の輝きを集めた神秘の冠。' }
+      ],
+      body:[
+        { id:'cloth_robe', name:'布のローブ', price:25, atk:0, def:4, mag:1, spd:0, description:'動きやすい素朴な布のローブ。' },
+        { id:'leather_robe', name:'革のローブ', price:85, atk:0, def:8, mag:1, spd:0, description:'革を重ねて守りを高めたローブ。' },
+        { id:'mage_robe', name:'魔導ローブ', price:240, atk:0, def:11, mag:5, spd:0, description:'魔法使いのための丈夫なローブ。' },
+        { id:'spirit_robe', name:'精霊のローブ', price:620, atk:0, def:15, mag:10, spd:1, description:'精霊の加護を受けた柔らかなローブ。' },
+        { id:'archmage_robe', name:'大魔導のローブ', price:1400, atk:1, def:20, mag:16, spd:1, description:'大魔導士の力を感じる上質なローブ。' },
+        { id:'ancient_garb', name:'古代の法衣', price:3000, atk:2, def:26, mag:23, spd:2, description:'古代の術式が織り込まれた法衣。' }
+      ],
+      arms:[
+        { id:'cloth_gloves', name:'布の手袋', price:20, atk:1, def:1, mag:1, spd:0, description:'手になじむ簡素な布の手袋。' },
+        { id:'leather_bracers', name:'革の小手', price:75, atk:3, def:3, mag:0, spd:0, description:'革で手首をしっかり守る小手。' },
+        { id:'mage_bangle', name:'魔導の腕輪', price:220, atk:2, def:2, mag:6, spd:0, description:'魔力を高める細工が施された腕輪。' },
+        { id:'silver_bangle', name:'銀の腕輪', price:550, atk:4, def:5, mag:5, spd:1, description:'銀の輝きが魔力を引き寄せる腕輪。' },
+        { id:'power_bangle', name:'力の腕輪', price:1250, atk:9, def:4, mag:4, spd:1, description:'装着者の力を引き出す腕輪。' },
+        { id:'ancient_gauntlet', name:'古代の籠手', price:2700, atk:13, def:10, mag:8, spd:2, description:'古代の技術で鍛えられた籠手。' }
+      ],
+      accessory:[
+        { id:'wood_pendant', name:'木のペンダント', price:25, atk:0, def:1, mag:2, spd:1, description:'木彫りのお守りが付いたペンダント。' },
+        { id:'silver_ring', name:'銀の指輪', price:100, atk:0, def:2, mag:5, spd:1, description:'魔力をわずかに宿す銀の指輪。' },
+        { id:'guard_charm', name:'守りのお守り', price:280, atk:0, def:7, mag:2, spd:0, description:'身を守る祈りが込められたお守り。' },
+        { id:'wind_charm', name:'疾風の羽飾り', price:650, atk:1, def:3, mag:3, spd:6, description:'風のような身軽さを授ける羽飾り。' },
+        { id:'magic_orb', name:'魔力のオーブ', price:1450, atk:0, def:3, mag:16, spd:2, description:'強い魔力を閉じ込めた宝珠。' },
+        { id:'ancient_crest', name:'古代の紋章', price:3100, atk:3, def:8, mag:18, spd:5, description:'古代の守護者を示す神秘の紋章。' }
+      ]
+    },
+    quests:[
+      {id:'q1_library_book',type:'sub',chapter:1,title:'なくした本を探して',desc:'図書館で本を探し、アルベルトに届けよう。',objective:{kind:'deliver',item:'忘れ物の本',to:'alberto'},reward:{gold:80,items:{'回復薬':1},exp:30}},
+      {id:'q2_herbs',type:'sub',chapter:1,title:'薬草を集めて',desc:'森で薬草を3つ集めよう。',objective:{kind:'gather',item:'薬草',count:3},reward:{gold:60,items:{'魔力薬':1},exp:25}},
+      {id:'q3_training_wins',type:'sub',chapter:1,title:'訓練の成果を見せて',desc:'訓練バトルに2回勝利しよう。',objective:{kind:'win',count:2},reward:{gold:100,items:{},exp:50}},
+      {id:'q4_hunt_slime',type:'hunt',chapter:1,title:'まほうスライム討伐',desc:'まほうスライムを3体倒そう。',objective:{kind:'hunt',enemyId:'slime',count:3},reward:{gold:70,items:{'薬草':2},exp:35}},
+      {id:'q5_hunt_wolf',type:'hunt',chapter:1,title:'こもりオオカミ討伐',desc:'こもりオオカミを2体倒そう。',objective:{kind:'hunt',enemyId:'wolf',count:2},reward:{gold:90,items:{'回復薬':2},exp:45}}
+    ],
     initialItems: { '回復薬': 3 },
     classroom: { x1: 2, y1: 2, x2: 8, y2: 7, lectern: { x: 5, y: 4 } },
     library: { x1: 21, y1: 2, x2: 27, y2: 7 },
@@ -112,9 +190,15 @@
   };
   const enemyMaps = {
     slime:["..........BBBB..........","........BBBBBBBB........",".......BBBBBBBBBB.......","......BBBBBBBBBBBB......",".....BBBBBBBBBBBBBB.....","....BBBWWBBBBBBBBBBB....","....BBWWBBBBBBBBBBBB....","...BBBBBBBBBBBBBBBBBB...","...BBBBEEBBBBEEBBBBBB...","...BBBBBBBBBBBBBBBBBB...","..BBBBBBBBBBBBBBBBBBBB..","..BBBBBBBBBMMBBBBBBBBB..","..BBBBBBBBBBBBBBBBBBBB..","..bbbbBBBBBBBBBBBBbbbb..",".bbbbbbbbbbbbbbbbbbbbbb."],
-    wolf:["..GG................GG..","..GGG..............GGG..","..GIGG............GGIG..","..GGGGG........GGGGG....","..GGGGGGGGGGGGGGGGGGG...",".GGGGGGGGGGGGGGGGGGGGG..",".GGGGGGGGGGGGGGGGGGGGG..",".GGGEEGGGGGGGGGGEEGGGG..",".GGGGGGGGGGGGGGGGGGGGG..","..GGGGGWWWWWWWWGGGGG....","..GGGGWWWWNNNNWWWWGGGG..","..GGGGGWWWWWWWWGGGGG....","...GGGGGGGGGGGGGGGG.....","..GGGGGGGGGGGGGGGGGGGG..",".GGgGGGGGGGGGGGGGGGGgGG.",".GGGGGGGGGGGGGGGGGGGGGG.",".GGGGGGgGGGGGGGGgGGGGGG.","..FFFF....FFFF....FFFF..","..FFFF....FFFF....FFFF.."]
+    wolf:["..GG................GG..","..GGG..............GGG..","..GIGG............GGIG..","..GGGGG........GGGGG....","..GGGGGGGGGGGGGGGGGGG...",".GGGGGGGGGGGGGGGGGGGGG..",".GGGGGGGGGGGGGGGGGGGGG..",".GGGEEGGGGGGGGGGEEGGGG..",".GGGGGGGGGGGGGGGGGGGGG..","..GGGGGWWWWWWWWGGGGG....","..GGGGWWWWNNNNWWWWGGGG..","..GGGGGWWWWWWWWGGGGG....","...GGGGGGGGGGGGGGGG.....","..GGGGGGGGGGGGGGGGGGGG..",".GGgGGGGGGGGGGGGGGGGgGG.",".GGGGGGGGGGGGGGGGGGGGGG.",".GGGGGGgGGGGGGGGgGGGGGG.","..FFFF....FFFF....FFFF..","..FFFF....FFFF....FFFF.."],
+    bat:["....BB......BB....","...BBBB....BBBB...","..BBBBBB..BBBBBB..",".BBBBBBBBBBBBBBBB.","BBBBBBBBBBBBBBBBBB",".BBBBBBEEEEBBBBBB.","..BBBBBBBBBBBBBB..","...BBBBBBBBBBBB...","....BB....BB......"],
+    mushroom:["......BBBBBB......","....BBBBBBBBBB....","..BBBBBBBBBBBBBB..",".BBBBBBBBBBBBBBBB.","BBBBBBWWBBBBWWBBBB","BBBBBBBBBBBBBBBBBB","...BBBBBBBBBB......","....BBBBBBBB........","....BBBBBBBB........","...BB......BB........"],
+    plant:["........BB........",".......BBBB.......","......BBBBBB......","....BBBBBBBBBB....","...BBBBWWBBBBBB...","....BBBBBBBBBB....","......BBBBBB......","...BB..BBBB..BB...","..BBB..BBBB..BBB..",".BBB...BBBB...BBB.",".......BBBB.......","......BB..BB......"],
+    golem:["....BBBBBBBB....","...BBBBBBBBBB...","..BBBBBBBBBBBB..","..BBBWWBBBBWWBB..","..BBBBBBBBBBBBBB.","..BBBBBBEEBBBBBB..","...BBBBBBBBBBBB...","...BBBBMMMMBBBB...","....BBBBBBBBBB....","...BBBB....BBBB...","..BBBB......BBBB..","..BBB........BBB.."],
+    bird:[".......BB.......","......BBBB......",".....BBBBBB.....","...BBBBBBBBBB...","..BBBBWWBBBBBB..",".BBBBBBBBBBBBBB.","..BBBBBBBBBBBB..","....BBBBBBBB....","...BB..BBBB..BB...","..BB...BBBB...BB..",".......BB........"],
+    ghost:["......BBBBBB......","....BBBBBBBBBB....","...BBBBBBBBBBBB...","..BBBBWWBBBBWWBB..","..BBBBBBBBBBBBBB..","..BBBBBBEEBBBBBB..","..BBBBBBBBBBBBBB..","...BBBBBBBBBBBB...","....BBBBBBBBBB....","....BB.BB.BB.BB...."]
   };
-  const enemyColors={slime:{B:'#5bb5e8',b:'#2f7fb8',W:'#e6f7ff',E:'#14324a',M:'#14486b'},wolf:{G:'#98a2ab',g:'#6e777f',W:'#eef2f5',E:'#1c2733',N:'#2a2f36',I:'#d98a94',F:'#565e66'}};
+  const enemyColors={slime:{B:'#5bb5e8',b:'#2f7fb8',W:'#e6f7ff',E:'#14324a',M:'#14486b'},wolf:{G:'#98a2ab',g:'#6e777f',W:'#eef2f5',E:'#1c2733',N:'#2a2f36',I:'#d98a94',F:'#565e66'},bat:{B:'#8055a8',b:'#52366d',W:'#e7d7f5',E:'#241633'},mushroom:{B:'#ba695e',b:'#774238',W:'#fff1d2',E:'#39252a'},plant:{B:'#5f9b55',b:'#356541',W:'#f2edb5',E:'#263b2a'},golem:{B:'#85868b',b:'#555860',W:'#c7d0d2',E:'#202b34',M:'#b96143'},bird:{B:'#78a8d5',b:'#416c9b',W:'#f4e6a9',E:'#25314a'},ghost:{B:'#b9c8dc',b:'#7b8da7',W:'#fffde5',E:'#45516b'}};
   function paint(ctx, rows, colors, x, y, scale) { rows.forEach((row, yy) => Array.from(row).forEach((c, xx) => { if(c!=='.'&&colors[c]) {ctx.fillStyle=colors[c];ctx.fillRect(x+xx*scale,y+yy*scale,scale,scale);} })); }
   function drawCharacter(ctx,id,dir,frame,cx,feetY,scale) {
     const pal=palettes[id]||palettes.yuuki, face=dir==='up'?up:dir==='left'||dir==='right'?left:down;
@@ -126,8 +210,8 @@
     if(dir==='right') { const all=rows.concat(legs); paint(ctx,all.map(r=>Array.from(r).reverse().join('')),colors,baseX,baseY,scale); }
     else { paint(ctx,rows.map(r=>r.join('')),colors,baseX,baseY,scale); paint(ctx,legs.map(r=>r.join('')),colors,baseX,baseY+18*scale,scale); }
   }
-  function drawEnemy(ctx,id,cx,cy,scale){const rows=enemyMaps[id]||enemyMaps.slime;paint(ctx,rows,enemyColors[id]||enemyColors.slime,Math.round(cx-12*scale),Math.round(cy-rows.length*scale/2),scale);}
-  root.MahouSprites={drawCharacter,drawEnemy};
+  function drawEnemy(ctx,id,cx,cy,scale,paletteOverride){const rows=enemyMaps[id]||enemyMaps.slime;paint(ctx,rows,{...(enemyColors[id]||enemyColors.slime),...(paletteOverride||{})},Math.round(cx-12*scale),Math.round(cy-rows.length*scale/2),scale);}
+  root.MahouSprites={drawCharacter,drawEnemy,enemySpriteIds:Object.keys(enemyMaps)};
 })(window);
 
 </script>
@@ -135,92 +219,104 @@
 (function (root) {
   'use strict';
   const Battle = {
-    game: null, enemies: [], turnOrder: [], orderIndex: 0, defending: {}, active: false, done: false,
-    start(game) {
-      this.game = game; this.active = true; this.done = false; this.defending = {};
+    game: null, area: 'training', enemies: [], turnOrder: [], orderIndex: 0, defending: {}, active: false, done: false,
+    start(game, area = 'training') {
+      this.game = game; this.area = area || 'training'; this.active = true; this.done = false; this.defending = {};
+      const pool = MahouData.enemies.filter(e => (e.areas || []).includes(this.area));
+      const source = pool.length ? pool : MahouData.enemies;
       const count = Math.random() < 0.45 ? 2 : 1;
+      const difficulty = game.difficulty || 'NORMAL', mult = difficulty === 'EASY' ? 0.8 : difficulty === 'HARD' ? 1.25 : 1;
       this.enemies = Array.from({ length: count }, () => {
-        const template = MahouData.enemies[Math.floor(Math.random() * MahouData.enemies.length)];
-        return { ...template, hp: template.hp, maxHp: template.hp, id: Math.random().toString(36).slice(2), dead: false };
+        const template = source[Math.floor(Math.random() * source.length)];
+        const hp = Math.max(1, Math.floor(template.hp * mult));
+        return { ...template, hp, maxHp: hp, atk: Math.max(1, Math.floor(template.atk * mult)), uid: Math.random().toString(36).slice(2), dead: false, status: {}, mods: { atk: 0, def: 0, mag: 0 }, modTurns: { atk: 0, def: 0, mag: 0 } };
       });
+      game.party.forEach(c => this.initRuntime(c));
       document.getElementById('battle').classList.remove('hidden');
       document.getElementById('battle-log').innerHTML = '<div>魔法生物があらわれた！</div>';
       this.render(); this.beginTurn();
     },
+    initRuntime(unit) { unit.status = {}; unit.mods = { atk: 0, def: 0, mag: 0 }; unit.modTurns = { atk: 0, def: 0, mag: 0 }; },
+    eff(unit, stat, side) { const base = side === 'party' ? this.game.statsOf(unit)[stat] : unit[stat]; const stage = Math.max(-2, Math.min(2, (unit.mods && unit.mods[stat]) || 0)); return Math.max(1, Math.floor(base * (1 + 0.25 * stage))); },
     log(message) { const el = document.getElementById('battle-log'); el.insertAdjacentHTML('beforeend', `<div>${this.escape(message)}</div>`); el.scrollTop = el.scrollHeight; },
     escape(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); },
-    aliveParty() { return this.game.party.filter(c => c.hp > 0); },
-    aliveEnemies() { return this.enemies.filter(e => e.hp > 0); },
+    aliveParty() { return this.game.party.filter(c => c.hp > 0); }, aliveEnemies() { return this.enemies.filter(e => e.hp > 0); },
+    markers(unit) { const labels = { atk: ['攻↑', '攻↓'], def: ['防↑', '防↓'], mag: ['魔↑', '魔↓'] }; return `${unit.status && unit.status.poison ? ' 毒' : ''}${['atk','def','mag'].map(s => (unit.mods && unit.mods[s]) ? ` ${labels[s][unit.mods[s] > 0 ? 0 : 1]}` : '').join('')}`; },
     render() {
       const field=document.getElementById('battle-field');
-      field.innerHTML = `<canvas id="battle-bg" width="712" height="170"></canvas><div class="enemy-list">${this.enemies.map(e => `<div class="enemy ${e.hp <= 0 ? 'dead' : ''}"><canvas class="enemy-sprite" width="96" height="80" data-sprite="${e.sprite}"></canvas><strong>${e.name}</strong><small>HP ${Math.max(0, e.hp)} / ${e.maxHp}</small></div>`).join('')}</div><canvas id="battle-fx" width="712" height="170"></canvas><div class="battle-party">${this.game.party.map(c => `<span>${c.name}<i>HP ${c.hp}/${c.maxHp} · MP ${c.mp}/${c.maxMp}</i></span>`).join('')}</div>`;
-      this.drawBattleBackground(); field.querySelectorAll('.enemy-sprite').forEach(c=>MahouSprites.drawEnemy(c.getContext('2d'),c.dataset.sprite,48,40,4));
+      field.innerHTML = `<canvas id="battle-bg" width="712" height="170"></canvas><div class="enemy-list">${this.enemies.map((e,i) => `<div class="enemy ${e.hp <= 0 ? 'dead' : ''}"><canvas class="enemy-sprite" width="96" height="80" data-sprite="${this.escape(e.sprite)}" data-index="${i}"></canvas><strong>${this.escape(e.name)}</strong><small>HP ${Math.max(0, e.hp)} / ${e.maxHp}${this.escape(this.markers(e))}</small></div>`).join('')}</div><canvas id="battle-fx" width="712" height="170"></canvas><div class="battle-party">${this.game.party.map(c => `<span>${this.escape(c.name)}${this.escape(this.markers(c))}<i>HP ${c.hp}/${c.maxHp} · MP ${c.mp}/${c.maxMp}</i></span>`).join('')}</div>`;
+      this.drawBattleBackground(); field.querySelectorAll('.enemy-sprite').forEach(c=>{ const e=this.enemies[Number(c.dataset.index)]; MahouSprites.drawEnemy(c.getContext('2d'),c.dataset.sprite,48,40,4,e.palette); });
     },
     drawBattleBackground() { const c=document.getElementById('battle-bg');if(!c)return;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,170);g.addColorStop(0,'#41415f');g.addColorStop(.62,'#d17c69');g.addColorStop(1,'#e8ba78');x.fillStyle=g;x.fillRect(0,0,712,170);x.fillStyle='#333548';for(const [a,b,w,h] of [[55,58,100,48],[210,42,115,64],[440,51,120,55],[590,35,75,70]]){x.fillRect(a,b,w,h);x.fillRect(a+28,b-18,w-56,18);}x.fillStyle='#a77b4c';x.fillRect(0,115,712,55);x.strokeStyle='#e2ba75';x.lineWidth=2;x.beginPath();x.ellipse(356,143,205,40,0,0,Math.PI*2);x.stroke();const glow=x.createRadialGradient(356,90,8,356,90,230);glow.addColorStop(0,'rgba(255,204,126,.22)');glow.addColorStop(1,'rgba(255,204,126,0)');x.fillStyle=glow;x.fillRect(0,0,712,170); },
     beginTurn() {
-      if (!this.active) return;
-      if (!this.aliveEnemies().length) return this.win();
-      if (!this.aliveParty().length) return this.lose();
-      this.turnOrder = [...this.aliveParty().map(c => ({ unit: c, side: 'party' })), ...this.aliveEnemies().map(e => ({ unit: e, side: 'enemy' }))].sort((a, b) => b.unit.spd - a.unit.spd);
+      if (!this.active) return; if (!this.aliveEnemies().length) return this.win(); if (!this.aliveParty().length) return this.lose();
+      this.turnOrder = [...this.aliveParty().map(c => ({ unit: c, side: 'party' })), ...this.aliveEnemies().map(e => ({ unit: e, side: 'enemy' }))].sort((a, b) => (b.side === 'party' ? this.eff(b.unit,'spd','party') : b.unit.spd) - (a.side === 'party' ? this.eff(a.unit,'spd','party') : a.unit.spd));
       this.orderIndex = 0; this.nextAction();
     },
+    expireMods(unit) { ['atk','def','mag'].forEach(s => { if (unit.modTurns[s] > 0 && --unit.modTurns[s] === 0) { unit.mods[s] = 0; this.log(`${unit.name}の${s === 'atk' ? '攻撃力' : s === 'def' ? '防御力' : '魔力'}が元に戻った。`); } }); },
+    poisonEnd(unit, side) { if (unit.status && unit.status.poison > 0) { const dmg = Math.max(1, Math.floor(unit.maxHp / 10)); unit.hp = Math.max(0, unit.hp - dmg); unit.status.poison--; this.log(`${unit.name}は毒で${dmg}ダメージを受けた。`); if (!unit.status.poison) delete unit.status.poison; if (unit.hp <= 0) this.log(`${unit.name}は毒で倒れた。`); } this.render(); if (!this.aliveParty().length) { this.lose(); return true; } if (!this.aliveEnemies().length) { this.win(); return true; } return false; },
     nextAction() {
-      if (!this.active) return;
-      if (!this.aliveEnemies().length) return this.win();
-      if (!this.aliveParty().length) return this.lose();
+      if (!this.active) return; if (!this.aliveEnemies().length) return this.win(); if (!this.aliveParty().length) return this.lose();
       if (this.orderIndex >= this.turnOrder.length) { this.render(); return this.beginTurn(); }
       const entry = this.turnOrder[this.orderIndex++];
       if (entry.unit.hp <= 0 || (entry.side === 'enemy' && !this.aliveEnemies().includes(entry.unit))) return this.nextAction();
+      this.expireMods(entry.unit);
       if (entry.side === 'enemy') { this.enemyAct(entry.unit); return; }
-      delete this.defending[entry.unit.id]; // 防御は自分の次の行動まで持続する
-      this.partyAct(entry.unit);
+      delete this.defending[entry.unit.id]; this.partyAct(entry.unit);
     },
-    partyAct(actor) {
-      document.getElementById('turn-label').textContent = `${actor.name}の行動`;
-      const actions = document.getElementById('battle-actions');
-      actions.innerHTML = '';
-      ['攻撃', '魔法', 'アイテム', '防御', '逃げる'].forEach(label => {
-        const b = document.createElement('button'); b.textContent = label; b.onclick = () => this.command(actor, label); actions.appendChild(b);
-      });
-    },
+    partyAct(actor) { document.getElementById('turn-label').textContent = `${actor.name}の行動`; const actions = document.getElementById('battle-actions'); actions.innerHTML = ''; ['攻撃', '魔法', 'アイテム', '防御', '逃げる'].forEach(label => { const b = document.createElement('button'); b.textContent = label; b.onclick = () => this.command(actor, label); actions.appendChild(b); }); },
     command(actor, command) {
-      if (command === '逃げる') { if (Math.random() < 0.55) { this.log('うまく逃げ切った！'); return this.finish(false); } this.log('逃げられなかった！'); return this.afterAction(); }
-      if (command === '防御') { this.defending[actor.id] = true; this.log(`${actor.name}は身を守っている。`); return this.afterAction(); }
-      if (command === '攻撃') return this.chooseEnemy(target => { const dmg = Math.max(1, actor.atk - target.def + this.rand(0, 5)); target.hp = Math.max(0, target.hp - dmg); this.log(`${actor.name}の攻撃！ ${target.name}に${dmg}ダメージ。`); this.render(); this.afterAction(); });
-      if (command === '魔法') {
-        const known = actor.spells.filter(name => MahouData.spells[name]);
-        if (!known.length) { this.log(`${actor.name}はまだ魔法を習得していない。`); return this.partyAct(actor); }
-        this.showChoices(known.map(name => `${name}（MP ${MahouData.spells[name].cost}）`), index => this.cast(actor, known[index])); return;
-      }
-      if (command === 'アイテム') {
-        const names = Object.keys(this.game.items).filter(n => this.game.items[n] > 0);
-        if (!names.length) { this.log('使えるアイテムがない。'); return this.partyAct(actor); }
-        this.showChoices(names.map(name => `${name} ×${this.game.items[name]}`), index => this.chooseParty(target => this.useItem(actor, target, names[index]))); return;
-      }
+      if (command === '逃げる') { if (Math.random() < 0.55) { this.log('うまく逃げ切った！'); return this.finish(false); } this.log('逃げられなかった！'); return this.afterAction(actor); }
+      if (command === '防御') { this.defending[actor.id] = true; this.log(`${actor.name}は身を守っている。`); return this.afterAction(actor); }
+      if (command === '攻撃') return this.chooseEnemy(target => { const dmg = Math.max(1, this.eff(actor,'atk','party') - this.eff(target,'def','enemy') + this.rand(0, 5)); target.hp = Math.max(0, target.hp - dmg); this.log(`${actor.name}の攻撃！ ${target.name}に${dmg}ダメージ。`); this.render(); this.afterAction(actor); });
+      if (command === '魔法') { const known = actor.spells.filter(name => MahouData.spells[name]); if (!known.length) { this.log(`${actor.name}はまだ魔法を習得していない。`); return this.partyAct(actor); } this.showChoices(known.map(name => `${name}（MP ${MahouData.spells[name].cost}）`), index => this.cast(actor, known[index])); return; }
+      if (command === 'アイテム') { const names = Object.keys(this.game.items).filter(n => this.game.items[n] > 0 && ['heal','mp','revive','cure','buff','escape'].includes((MahouData.items[n] || {}).type)); if (!names.length) { this.log('使えるアイテムがない。'); return this.partyAct(actor); } this.showChoices(names.map(name => `${name} ×${this.game.items[name]}`), index => this.chooseItemTarget(actor, names[index])); }
     },
-    showChoices(labels, callback) {
-      const actions = document.getElementById('battle-actions'); actions.innerHTML = '';
-      labels.forEach((label, i) => { const b = document.createElement('button'); b.textContent = label; b.className = 'battle-choice'; b.onclick = () => callback(i); actions.appendChild(b); });
-      const back = document.createElement('button'); back.textContent = '戻る'; back.onclick = () => this.partyAct(this.turnOrder[this.orderIndex - 1].unit); actions.appendChild(back);
-    },
+    showChoices(labels, callback) { const actions = document.getElementById('battle-actions'); actions.innerHTML = ''; labels.forEach((label, i) => { const b = document.createElement('button'); b.textContent = label; b.className = 'battle-choice'; b.onclick = () => callback(i); actions.appendChild(b); }); const back = document.createElement('button'); back.textContent = '戻る'; back.onclick = () => this.partyAct(this.turnOrder[this.orderIndex - 1].unit); actions.appendChild(back); },
     chooseEnemy(callback) { const list = this.aliveEnemies(); if (list.length === 1) return callback(list[0]); this.showChoices(list.map(e => `${e.name} HP ${e.hp}/${e.maxHp}`), i => callback(list[i])); },
-    chooseParty(callback) { const list = this.aliveParty(); this.showChoices(list.map(c => `${c.name} HP ${c.hp}/${c.maxHp}`), i => callback(list[i])); },
+    chooseParty(callback) { const list = this.aliveParty(); if (!list.length) return this.partyAct(this.turnOrder[this.orderIndex - 1].unit); this.showChoices(list.map(c => `${c.name} HP ${c.hp}/${c.maxHp}`), i => callback(list[i])); },
+    chooseDeadParty(callback) { const list = this.game.party.filter(c => c.hp <= 0); if (!list.length) return false; this.showChoices(list.map(c => `${c.name}（戦闘不能）`), i => callback(list[i])); return true; },
     cast(actor, name) {
-      const spell = MahouData.spells[name];
-      if (actor.mp < spell.cost) { this.log(`${actor.name}はMPが足りない！`); return this.partyAct(actor); }
-      if (spell.type === 'heal') return this.chooseParty(target => { actor.mp -= spell.cost; const amount = Math.min(target.maxHp - target.hp, spell.power + actor.mag); target.hp += amount; this.log(`${actor.name}は${name}を唱えた。${target.name}のHPが${amount}回復！`); this.render(); this.playEffect('heal'); this.afterAction(); });
-      this.chooseEnemy(target => { actor.mp -= spell.cost; const amount = Math.max(1, spell.power + actor.mag - target.def + this.rand(0, 5)); target.hp = Math.max(0, target.hp - amount); this.log(`${actor.name}は${name}を唱えた！ ${target.name}に火属性${amount}ダメージ。`); this.render(); this.playEffect('fire'); this.afterAction(); });
+      const spell = MahouData.spells[name]; if (actor.mp < spell.cost) { this.log(`${actor.name}はMPが足りない！`); return this.partyAct(actor); }
+      const pay = () => { actor.mp -= spell.cost; };
+      if (spell.type === 'damage') return this.chooseEnemy(target => { pay(); const affinity = spell.element && spell.element === target.weak ? 1.5 : (target.resist || []).includes(spell.element) ? 0.5 : 1; if (affinity === 1.5) this.log('弱点をついた！'); if (affinity === 0.5) this.log('耐性で軽減された。'); const amount = Math.max(1, Math.floor((spell.power + this.eff(actor,'mag','party') - this.eff(target,'def','enemy') + this.rand(0,5)) * affinity)); target.hp = Math.max(0,target.hp-amount); this.log(`${actor.name}は${name}を唱えた！ ${target.name}に${amount}ダメージ。`); this.render(); this.playEffect(spell.element === '火' ? 'fire' : 'heal'); this.afterAction(actor); });
+      if (spell.type === 'heal') return this.chooseParty(target => { pay(); const amount = Math.min(target.maxHp-target.hp, spell.power + this.eff(actor,'mag','party')); target.hp += amount; this.log(`${actor.name}は${name}を唱えた。${target.name}のHPが${amount}回復！`); this.render(); this.playEffect('heal'); this.afterAction(actor); });
+      if (spell.type === 'revive') { if (!this.chooseDeadParty(target => { pay(); target.hp = Math.max(1, Math.floor(target.maxHp * spell.power / 100)); this.log(`${actor.name}は${name}を唱えた。${target.name}がよみがえった！`); this.render(); this.afterAction(actor); })) { this.log('戦闘不能の仲間がいない。'); return this.partyAct(actor); } return; }
+      if (spell.type === 'cure') return this.chooseParty(target => { if (!target.status.poison) { this.log(`${target.name}は毒にかかっていない。`); return this.partyAct(actor); } pay(); delete target.status.poison; this.log(`${actor.name}は${name}を唱えた。${target.name}の毒が治った！`); this.render(); this.afterAction(actor); });
+      if (spell.type === 'buff') return this.chooseParty(target => { pay(); this.applyMod(target,spell.stat,spell.stages || 1,spell.turns || 3); this.log(`${target.name}の${this.statName(spell.stat)}が上がった！`); this.render(); this.afterAction(actor); });
+      if (spell.type === 'debuff') return this.chooseEnemy(target => { pay(); if (Math.random() < 0.85) { this.applyMod(target,spell.stat,spell.stages || -1,spell.turns || 3); if (spell.secondStat) this.applyMod(target,spell.secondStat,spell.stages || -1,spell.turns || 3); this.log(`${target.name}の能力が下がった！`); } else this.log(`${name}はミス！`); this.render(); this.afterAction(actor); });
+      if (spell.type === 'status') return this.chooseEnemy(target => { pay(); if (Math.random() < 0.85) { target.status.poison = spell.turns || 3; this.log(`${target.name}は毒におかされた！`); } else this.log(`${name}はミス！`); this.render(); this.afterAction(actor); });
+      this.log(`${name}は使えなかった。`); this.partyAct(actor);
     },
+    statName(stat) { return ({ atk: '攻撃力', def: '防御力', mag: '魔力' })[stat] || stat; },
+    applyMod(unit, stat, amount, turns) { if (!unit.mods || !(stat in unit.mods)) return; unit.mods[stat] = Math.max(-2,Math.min(2,unit.mods[stat]+amount)); unit.modTurns[stat] = turns; },
+    chooseItemTarget(actor,name) { const item=MahouData.items[name]; if (item.type==='escape') return this.useItem(actor,null,name); if (item.type==='buff') return this.useItem(actor,actor,name); const dead=item.type==='revive'; const chooser=dead?this.chooseDeadParty.bind(this):this.chooseParty.bind(this); const has=dead?this.game.party.some(c=>c.hp<=0):this.aliveParty().length>0; if (!has) { this.log('対象がいない。'); return this.partyAct(actor); } chooser(target=>this.useItem(actor,target,name)); },
+    useItem(actor,target,name) { const item=MahouData.items[name]; if (item.type==='escape') { this.game.items[name]--; this.log(`${actor.name}は${name}を使った。うまく逃げ切った！`); return this.finish(false); } if (item.type==='buff') { this.game.items[name]--; this.applyMod(actor,item.effect,1,3); this.log(`${actor.name}は${name}を使った。${this.statName(item.effect)}が上がった！`); this.render(); return this.afterAction(actor); }
+      if (item.type==='heal') { if (target.hp<=0) return this.noItemTarget(actor); const raw=item.heal==='all'||item.heal===undefined?target.maxHp:item.heal; const amount=Math.min(target.maxHp-target.hp,raw); if (amount<=0) return this.noItemTarget(actor); this.game.items[name]--; target.hp+=amount; this.log(`${actor.name}は${name}を使った。${target.name}のHPが${amount}回復！`); }
+      else if (item.type==='mp') { const amount=Math.min(target.maxMp-target.mp,item.mp||0); if (amount<=0) return this.noItemTarget(actor); this.game.items[name]--; target.mp+=amount; this.log(`${actor.name}は${name}を使った。${target.name}のMPが${amount}回復！`); }
+      else if (item.type==='revive') { this.game.items[name]--; target.hp=Math.max(1,Math.floor(target.maxHp*(item.reviveRatio||0.5))); this.log(`${actor.name}は${name}を使った。${target.name}がよみがえった！`); }
+      else if (item.type==='cure') { const poisoned=!!target.status.poison; if (item.cureStatus==='poison'&&!poisoned || item.cureStatus==='all'&&!poisoned) return this.noItemTarget(actor); this.game.items[name]--; if (item.cureStatus==='all'||item.cureStatus==='poison') delete target.status.poison; this.log(`${actor.name}は${name}を使った。${target.name}の毒が治った！`); }
+      this.render(); this.afterAction(actor);
+    },
+    noItemTarget(actor) { this.log('使っても効果がない。'); this.partyAct(actor); },
+    enemyAct(enemy) {
+      const spells=(enemy.spells||[]).map(n=>MahouData.spells[n]).filter(Boolean); const livingEnemies=this.aliveEnemies();
+      if (enemy.ai==='caster' && Math.random()<0.5) { const damageSpells=spells.filter(s=>s.type==='damage'); if (damageSpells.length) { const spell=damageSpells[Math.floor(Math.random()*damageSpells.length)], target=this.randomOf(this.aliveParty()); const amount=Math.max(1,spell.power+this.eff(enemy,'mag','enemy')-this.eff(target,'def','party')); target.hp=Math.max(0,target.hp-amount); this.log(`${enemy.name}は魔法を放った！ ${target.name}は${amount}ダメージを受けた。`); this.render(); return setTimeout(()=>{ if(!this.poisonEnd(enemy,'enemy')) this.nextAction(); },420); } }
+      if (enemy.ai==='support' && Math.random()<0.4) { const options=spells.filter(s=>['buff','debuff','status','heal'].includes(s.type)); if(options.length) { const spell=options[Math.floor(Math.random()*options.length)]; if(spell.type==='buff') { const target=this.randomOf(livingEnemies); this.applyMod(target,spell.stat,spell.stages||1,spell.turns||3); this.log(`${enemy.name}は${spell.id}を唱えた。${target.name}の能力が上がった！`); }
+        else if(spell.type==='heal') { const target=livingEnemies.slice().sort((a,b)=>(a.hp/a.maxHp)-(b.hp/b.maxHp))[0], amount=Math.min(target.maxHp-target.hp,spell.power+this.eff(enemy,'mag','enemy')); target.hp+=amount; this.log(`${enemy.name}は回復魔法を唱えた。${target.name}のHPが${amount}回復！`); }
+        else { const target=this.randomOf(this.aliveParty()); if(Math.random()<0.85) { if(spell.type==='status') target.status.poison=spell.turns||3; else { this.applyMod(target,spell.stat,spell.stages||-1,spell.turns||3); if(spell.secondStat)this.applyMod(target,spell.secondStat,spell.stages||-1,spell.turns||3); } this.log(`${target.name}に${spell.type==='status'?'毒が回った':'能力低下が起きた'}！`); } else this.log(`${enemy.name}の魔法はミス！`); }
+        this.render(); return setTimeout(()=>{ if(!this.poisonEnd(enemy,'enemy')) this.nextAction(); },420); } }
+      const target=this.randomOf(this.aliveParty()); const damage=Math.max(1,this.eff(enemy,'atk','enemy')-this.eff(target,'def','party')+this.rand(0,5)); const dealt=this.defending[target.id]?Math.ceil(damage/2):damage; target.hp=Math.max(0,target.hp-dealt); this.log(`${enemy.name}の攻撃！ ${target.name}は${dealt}ダメージを受けた。`); this.render(); setTimeout(()=>{ if(!this.poisonEnd(enemy,'enemy')) this.nextAction(); },420);
+    },
+    randomOf(list) { return list[Math.floor(Math.random()*list.length)]; },
+    afterAction(actor) { if (this.poisonEnd(actor,'party')) return; setTimeout(() => this.nextAction(), 220); },
     playEffect(type) { const canvas=document.getElementById('battle-fx');if(!canvas)return;const ctx=canvas.getContext('2d'),start=performance.now(),colors=type==='fire'?['#ff4d27','#ffb52e','#fff07b']:['#69e58a','#c4ffd0','#ffffff'],parts=Array.from({length:type==='fire'?26:18},(_,i)=>({x:type==='fire'?100+(i*83)%520:120+(i*47)%470,y:type==='fire'?105+(i%4)*8:150,v:1+(i%4)*.45,r:2+i%3}));const step=now=>{const t=(now-start)/600;ctx.clearRect(0,0,712,170);if(t>=1)return;parts.forEach((p,i)=>{ctx.globalAlpha=1-t;ctx.fillStyle=colors[i%colors.length];ctx.fillRect(p.x+Math.sin(t*7+i)*5,p.y-t*80*p.v,p.r,p.r);});ctx.globalAlpha=1;requestAnimationFrame(step);};requestAnimationFrame(step); },
-    useItem(actor, target, name) { const item = MahouData.items[name]; if (target.hp >= target.maxHp) { this.log(`${target.name}のHPは満タンだ。`); return this.afterAction(); } this.game.items[name]--; const amount = Math.min(target.maxHp - target.hp, item.heal); target.hp += amount; this.log(`${actor.name}は${name}を使った。${target.name}のHPが${amount}回復！`); this.render(); this.afterAction(); },
-    enemyAct(enemy) { const target = this.aliveParty()[Math.floor(Math.random() * this.aliveParty().length)]; const damage = Math.max(1, enemy.atk - target.def + this.rand(0, 5)); const dealt = this.defending[target.id] ? Math.ceil(damage / 2) : damage; target.hp = Math.max(0, target.hp - dealt); this.log(`${enemy.name}の攻撃！ ${target.name}は${dealt}ダメージを受けた。`); this.render(); setTimeout(() => this.nextAction(), 420); },
-    afterAction() { this.render(); setTimeout(() => this.nextAction(), 220); },
-    win() { const exp = this.enemies.reduce((n, e) => n + e.exp, 0); this.game.party.forEach(c => { if (c.hp > 0) this.game.gainExp(c, exp); }); this.log(`勝利！ みんなは経験値${exp}を獲得。`); this.game.save(true); this.render(); document.getElementById('battle-actions').innerHTML = '<button id="battle-finish">訓練場へ戻る</button>'; document.getElementById('battle-finish').onclick = () => this.finish(true); this.done = true; },
-    lose() { this.log('パーティーは全滅してしまった……。'); document.getElementById('battle-actions').innerHTML = ''; this.done = true; this.game.battle = false; setTimeout(() => { document.getElementById('battle').classList.add('hidden'); this.active = false; document.getElementById('game-over').classList.remove('hidden'); }, 900); },
-    finish(victory) { this.active = false; this.done = true; this.game.battle = false; document.getElementById('battle').classList.add('hidden'); document.getElementById('battle-actions').innerHTML = ''; if (victory) this.game.renderHud(); },
-    rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    win() { const exp=this.enemies.reduce((n,e)=>n+e.exp,0); this.game.party.forEach(c=>{if(c.hp>0)this.game.gainExp(c,exp);}); this.log(`勝利！ みんなは経験値${exp}を獲得。`); if(this.game.onBattleVictory) this.game.onBattleVictory(this.enemies,this.area); this.game.save(true); this.render(); document.getElementById('battle-actions').innerHTML='<button id="battle-finish">訓練場へ戻る</button>'; document.getElementById('battle-finish').onclick=()=>this.finish(true); this.done=true; },
+    lose() { this.log('パーティーは全滅してしまった……。'); document.getElementById('battle-actions').innerHTML=''; this.done=true; this.game.battle=false; setTimeout(()=>{document.getElementById('battle').classList.add('hidden');this.active=false;document.getElementById('game-over').classList.remove('hidden');},900); },
+    finish(victory) { this.active=false; this.done=true; this.game.battle=false; document.getElementById('battle').classList.add('hidden'); document.getElementById('battle-actions').innerHTML=''; if(victory)this.game.renderHud(); },
+    rand(min,max) { return Math.floor(Math.random()*(max-min+1))+min; }
   };
-  root.MahouBattle = Battle;
+  root.MahouBattle=Battle;
 })(window);
 
 </script>
@@ -230,10 +326,13 @@
   const D = MahouData, TILE = D.tileSize, W = D.mapWidth, H = D.mapHeight;
   const $ = id => document.getElementById(id);
   const game = {
-    party: [], items: {}, pos: { ...D.start }, facing: 'down', walkFrame: 0, settings: { blur: true }, learnedLesson: false, year: 1, moving: false, dialogue: null, dialogIndex: 0, lastInteract: 0, menuTab: 'status', battle: false, toastTimer: 0,
+    party: [], items: {}, quests: {}, chapter: 1, gold: 300, difficulty: 'NORMAL', difficultyChoice: 'NORMAL', equipBag: {}, equipChar: 0, equipCat: null, shopMode: 'buy', pos: { ...D.start }, mapId: 'academy', maps: {}, herbs: [], facing: 'down', walkFrame: 0, settings: { blur: true }, learnedLesson: false, year: 1, moving: false, dialogue: null, dialogIndex: 0, lastInteract: 0, menuTab: 'status', battle: false, toastTimer: 0,
     init() {
-      this.canvas = $('world'); this.ctx = this.canvas.getContext('2d'); this.fg = $('world-fg'); this.fgCtx = this.fg.getContext('2d'); this.settings = { blur: true }; try { this.settings.blur = JSON.parse(localStorage.getItem('mahou_settings_v1') || '{"blur":true}')?.blur !== false; } catch (_) {} this.buildMap(); this.buildArt(); this.drawTitleArt(); this.applyBlur();
+      this.canvas = $('world'); this.ctx = this.canvas.getContext('2d'); this.fg = $('world-fg'); this.fgCtx = this.fg.getContext('2d'); this.settings = { blur: true }; try { const settings = JSON.parse(localStorage.getItem('mahou_settings_v1') || '{"blur":true}'); this.settings.blur = settings.blur !== false; this.difficultyChoice = ['EASY','NORMAL','HARD'].includes(settings.difficulty) ? settings.difficulty : 'NORMAL'; } catch (_) {} this.buildMap(); this.buildArt(); this.drawTitleArt(); this.applyBlur();
       $('new-game').onclick = () => this.newGame(); $('continue-game').onclick = () => this.loadAny();
+      document.querySelectorAll('[data-diff]').forEach(b => b.onclick = () => { this.difficultyChoice = b.dataset.diff; document.querySelectorAll('[data-diff]').forEach(x => x.classList.toggle('selected', x.dataset.diff === this.difficultyChoice)); try { localStorage.setItem('mahou_settings_v1', JSON.stringify({ ...this.settings, difficulty: this.difficultyChoice })); } catch (_) {} });
+      document.querySelectorAll('[data-diff]').forEach(b => b.classList.toggle('selected', b.dataset.diff === this.difficultyChoice));
+      document.querySelectorAll('[data-shop-mode]').forEach(b => b.onclick = () => { if (b.dataset.shopMode === 'exit') $('shop').classList.add('hidden'); else this.renderShop(b.dataset.shopMode); });
       $('interact-button').onclick = () => this.interact(); $('menu-button').onclick = () => this.openMenu();
       $('dialogue-next').onclick = () => this.nextDialogue();
       $('save-button').onclick = () => this.save(false); $('load-button').onclick = () => this.loadManual(); $('title-button').onclick = () => this.toTitle();
@@ -248,27 +347,40 @@
       window.addEventListener('resize', () => this.draw()); this.updateContinue(); this.draw(); this.animate();
     },
     buildMap() {
-      this.TREES = [[3,1],[12,1],[19,1],[26,1],[1,9],[7,10],[22,10],[28,9],[9,16],[20,17]]; this.treeSet = new Set(this.TREES.map(([x,y]) => `${x},${y}`));
-      this.tiles = Array.from({ length: H }, (_, y) => Array.from({ length: W }, (_, x) => {
+      const trees = [[3,1],[12,1],[19,1],[26,1],[1,9],[7,10],[22,10],[28,9],[9,16],[20,17]];
+      const tiles = Array.from({ length: H }, (_, y) => Array.from({ length: W }, (_, x) => {
         if (x === 0 || y === 0 || x === W - 1 || y === H - 1) return 'wall';
         for (const [key, area] of Object.entries({ classroom: D.classroom, library: D.library, dorm: D.dorm, shop: D.shop, training: D.training })) if (x >= area.x1 && x <= area.x2 && y >= area.y1 && y <= area.y2) return key;
         if ((x >= 10 && x <= 19 && y >= 2 && y <= 12) || (x >= 9 && x <= 20 && y >= 8 && y <= 13)) return 'hall';
         return 'grass';
       }));
       // Hall paths connect all academy areas.
-      for (let y = 8; y <= 13; y++) for (let x = 9; x <= 20; x++) this.tiles[y][x] = 'hall';
-      for (let y = 7; y <= 9; y++) { this.tiles[y][8] = 'hall'; this.tiles[y][21] = 'hall'; }
-      for (let y = 11; y <= 14; y++) { this.tiles[y][8] = 'hall'; this.tiles[y][21] = 'hall'; }
-      this.tiles[7][5] = 'door'; this.tiles[7][24] = 'door'; this.tiles[12][5] = 'door'; this.tiles[12][24] = 'door';
-      for (let x = 14; x <= 16; x++) this.tiles[14][x] = 'hall';
+      for (let y = 8; y <= 13; y++) for (let x = 9; x <= 20; x++) tiles[y][x] = 'hall';
+      for (let y = 7; y <= 9; y++) { tiles[y][8] = 'hall'; tiles[y][21] = 'hall'; }
+      for (let y = 11; y <= 14; y++) { tiles[y][8] = 'hall'; tiles[y][21] = 'hall'; }
+      tiles[7][5] = 'door'; tiles[7][24] = 'door'; tiles[12][5] = 'door'; tiles[12][24] = 'door';
+      for (let x = 14; x <= 16; x++) tiles[14][x] = 'hall';
+      const academy = { label: '中央ホール', grade: 'academy', tiles, trees, npcs: D.npcs, signs: [['教室',5,2],['図書館',24,2],['寮',5,17],['ショップ',24,17],['訓練場',14,17],['中央ホール',14,6],['外への扉',10,12]], exits: [{x:10,y:13,to:'exterior',arrival:{x:15,y:4}}] };
+      const exterior = { label:'学院・中庭', grade:'exterior', tiles:Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>x===0||x===W-1||y===0||y===H-1?'wall':'grass')), trees:[[3,7],[7,5],[23,5],[27,8],[5,13],[10,16],[20,15],[25,12],[8,9],[22,11]], flowers:[[4,5],[11,5],[19,5],[26,5],[4,7],[11,7],[19,7],[26,7],[12,8],[18,8],[12,11],[18,11]], npcs:[{id:'sara',sprite:'leo',name:'生徒サラ',x:9,y:11,lines:['中庭の噴水は、昼になると光がきらきら反射するんです。']},{id:'toma',sprite:'milia',name:'生徒トーマ',x:20,y:12,lines:['森には薬草があるけれど、魔法生物にも気をつけて！']}], signs:[['外への扉',15,4],['森への門',15,18]], exits:[{x:15,y:3,to:'academy',arrival:{x:14,y:12}},{x:14,y:19,to:'forest',arrival:{x:15,y:2}},{x:15,y:19,to:'forest',arrival:{x:15,y:2}}] };
+      for(let x=5;x<=25;x++) for(let y=0;y<=2;y++) exterior.tiles[y][x]='wall';
+      exterior.tiles[3][14]=exterior.tiles[3][15]=exterior.tiles[3][16]='hall';
+      for(let x=2;x<28;x++) exterior.tiles[6][x]='hall'; for(let y=4;y<19;y++) exterior.tiles[y][15]='hall';
+      for(let y=9;y<=10;y++)for(let x=14;x<=16;x++)exterior.tiles[y][x]='fountain';
+      const forestTrees=[]; for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++) if(!([[15,1],[15,2],[6,6],[23,6],[15,10]].some(([a,b])=>a===x&&b===y) || x===6 || x===15 || x===23 || y===2 || y===6 || y===10 || y===15) && (x<3||x>26||y>16||((x*7+y*11)%9<4 && !(x>=12&&x<=17) && !(y>=5&&y<=11)))) forestTrees.push([x,y]);
+      exterior.tiles[19][14]=exterior.tiles[19][15]='hall';
+      const forest={label:'学院の森',grade:'forest',tiles:Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>x===0||x===W-1||y===0||y===H-1?'wall':'grass')),trees:forestTrees,npcs:[],signs:[['学院への帰り道',15,3]],exits:[{x:15,y:1,to:'exterior',arrival:{x:15,y:17}}]}; forest.tiles[1][15]='hall';
+      this.maps={academy,exterior,forest}; this.setMap('academy',D.start.x,D.start.y);
     },
-    newGame() { this.party = D.party.map(c => ({ ...c, spells: [...c.spells] })); this.items = { ...D.initialItems }; this.pos = { ...D.start }; this.learnedLesson = false; this.year = 1; this.battle = false; $('title-screen').classList.add('hidden'); $('game-screen').classList.remove('hidden'); this.renderHud(); this.draw(); this.showToast('魔法学院へようこそ！'); },
+    setMap(id,x,y) { if(!this.maps[id]) id='academy'; this.mapId=id; const m=this.maps[id]; this.tiles=m.tiles; this.TREES=m.trees; this.treeSet=new Set(m.trees.map(([tx,ty])=>`${tx},${ty}`)); if(id==='forest') this.herbs=[{x:6,y:6,taken:false},{x:23,y:6,taken:false},{x:15,y:10,taken:false}]; this.pos={x:x??D.start.x,y:y??D.start.y}; if(this.treeSet.has(`${this.pos.x},${this.pos.y}`)||this.tiles[this.pos.y]?.[this.pos.x]==='wall') this.pos=id==='academy'?{...D.start}:{x:15,y:id==='forest'?2:4}; this.buildArt(); this.draw(); },
+    equipDef(id) { for (const list of Object.values(D.equipment || {})) { const found = list.find(it => it.id === id); if (found) return found; } return null; },
+    statsOf(c) { const out = { atk: c.atk || 0, def: c.def || 0, mag: c.mag || 0, spd: c.spd || 0 }; for (const id of Object.values(c.equipment || {})) { const it = this.equipDef(id); if (it) for (const k of Object.keys(out)) out[k] += Number(it[k]) || 0; } return out; },
+    newGame() { this.difficulty = this.difficultyChoice; this.gold = 300; this.quests = {}; this.chapter = 1; this.equipBag = {}; this.party = D.party.map(c => ({ ...c, spells: [...c.spells], equipment: { weapon: null, head: null, body: null, arms: null, accessory: null } })); const staff = D.equipment.weapon.find(it => it.name === 'ひのきの杖'), robe = D.equipment.body.find(it => it.name === '布のローブ'); if (staff) this.party.forEach(c => c.equipment.weapon = staff.id); if (robe) this.equipBag[robe.id] = 1; this.items = { ...D.initialItems }; this.setMap('academy',D.start.x,D.start.y); this.learnedLesson = false; this.year = 1; this.battle = false; $('title-screen').classList.add('hidden'); $('game-screen').classList.remove('hidden'); this.renderHud(); this.draw(); this.startDialogue('アルベルト', ['入学おめでとう、ユウキ。今日から君は魔法学院の生徒だ。', 'ここでは6年間、魔法と世界の真実を学ぶことになる。'], () => this.startDialogue('エレナ', ['私は副学院長のエレナ。困ったことがあれば、いつでも声をかけてくださいね。', 'まずは教室で基礎魔法の授業を受けるといいでしょう。'], () => this.startDialogue('レオ', ['やあ！ぼくはレオ。同じクラスだね！', '一緒にがんばろう！困ったときは助け合おうな。'], () => this.startDialogue('ミリア', ['私はミリア。よろしくね。', '学院の森には魔法生物もいるそうよ。気をつけて。'], () => this.showToast('第1章 学院生活と基礎訓練'))))); },
     toTitle() { $('game-screen').classList.add('hidden'); $('menu').classList.add('hidden'); $('dialogue').classList.add('hidden'); $('title-screen').classList.remove('hidden'); this.updateContinue(); },
     updateContinue() { $('continue-game').disabled = !this.readSave('mahou_save_manual') && !this.readSave('mahou_save_auto'); },
     keydown(e) {
       if (e.repeat && ['Enter',' ','z','Z'].includes(e.key)) return;
       const k = e.key.toLowerCase();
-      if (k === 'escape') { if (!$('dialogue').classList.contains('hidden')) { $('dialogue').classList.add('hidden'); this.dialogue = null; } else if (!$('battle').classList.contains('hidden')) return; else if ($('menu').classList.contains('hidden')) this.openMenu(); else $('menu').classList.add('hidden'); e.preventDefault(); return; }
+      if (k === 'escape') { if (!$('dialogue').classList.contains('hidden')) { if(this.dialogue?.onDone){e.preventDefault();return;} $('dialogue').classList.add('hidden'); this.dialogue = null; } else if (!$('battle').classList.contains('hidden')) return; else if ($('menu').classList.contains('hidden')) this.openMenu(); else $('menu').classList.add('hidden'); e.preventDefault(); return; }
       if (!$('title-screen').classList.contains('hidden')) { if (e.key === 'Enter') this.newGame(); return; }
       const dirs = { arrowup:'up',w:'up',arrowdown:'down',s:'down',arrowleft:'left',a:'left',arrowright:'right',d:'right' };
       if (dirs[k] && $('dialogue').classList.contains('hidden') && $('menu').classList.contains('hidden') && $('battle').classList.contains('hidden')) { e.preventDefault(); this.move(dirs[k]); return; }
@@ -279,16 +391,24 @@
       const delta = { up:[0,-1],down:[0,1],left:[-1,0],right:[1,0] }[dir]; if (!delta) return;
       const nx = this.pos.x + delta[0], ny = this.pos.y + delta[1];
       this.facing = dir;
-      if (nx < 1 || ny < 1 || nx >= W-1 || ny >= H-1 || this.tiles[ny][nx] === 'wall' || this.tiles[ny][nx] === 'door' || this.treeSet.has(`${nx},${ny}`)) return;
-      if (D.npcs.some(n => n.x === nx && n.y === ny)) return;
+      const exit=this.maps[this.mapId].exits.find(e=>e.x===nx&&e.y===ny);
+      if ((!exit&&(nx < 1 || ny < 1 || nx >= W-1 || ny >= H-1 || this.tiles[ny][nx] === 'wall')) || this.tiles[ny][nx] === 'door' || this.treeSet.has(`${nx},${ny}`)) return;
+      if (this.maps[this.mapId].npcs.some(n => n.x === nx && n.y === ny)) return;
       const prevKind = this.tiles[this.pos.y][this.pos.x];
       this.pos = { x: nx, y: ny }; this.walkFrame ^= 1; this.draw(); this.moving = true; setTimeout(() => { this.moving = false; }, 95);
+      if(exit){this.setMap(exit.to,exit.arrival.x,exit.arrival.y);return;}
+      if(this.mapId==='forest'&&!this.battle&&Math.random()<.14){this.battle=true;MahouBattle.start(this,'forest');return;}
       if (this.tiles[ny][nx] === 'training' && prevKind !== 'training' && !this.battle) { this.battle = true; this.showConfirm('訓練バトル', '魔法生物との訓練バトルをはじめますか？', () => MahouBattle.start(this), () => { this.battle = false; }); }
     },
     interact() {
       if (!$('dialogue').classList.contains('hidden') || !$('menu').classList.contains('hidden') || !$('battle').classList.contains('hidden') || !$('confirm-dialog').classList.contains('hidden')) return;
-      const npc = D.npcs.find(n => Math.abs(n.x-this.pos.x) + Math.abs(n.y-this.pos.y) <= 1);
-      if (npc) { this.startDialogue(npc.name, npc.lines); return; }
+      const npc = this.maps[this.mapId].npcs.find(n => Math.abs(n.x-this.pos.x) + Math.abs(n.y-this.pos.y) <= 1);
+      if (npc) { const quest=this.quests.q1_library_book; if(npc.id==='alberto'&&quest?.state==='accepted'&&quest.gotBook&&!quest.delivered&&(this.items['忘れ物の本']||0)>0){this.items['忘れ物の本']--;quest.delivered=true;this.startDialogue(npc.name,['おお、それは図書館のなくした本だね。ありがとう。','掲示板で報告してくれたまえ。報酬を用意しておくよ。']);}else this.startDialogue(npc.name,npc.lines); return; }
+      if(this.mapId==='academy'&&Math.abs(24-this.pos.x)+Math.abs(3-this.pos.y)<=1){const quest=this.quests.q1_library_book;if(quest?.state==='accepted'&&!quest.gotBook){this.items['忘れ物の本']=(this.items['忘れ物の本']||0)+1;quest.gotBook=true;this.startDialogue('本棚',['ほんのすきまに、なくした本がはさまっていた！「忘れ物の本」を手に入れた。']);return;}}
+      if(this.mapId==='academy'&&Math.abs(18-this.pos.x)+Math.abs(7-this.pos.y)<=1){this.openQuests();return;}
+      if(this.mapId==='forest'){const herb=this.herbs.find(h=>!h.taken&&Math.abs(h.x-this.pos.x)+Math.abs(h.y-this.pos.y)<=1);if(herb){herb.taken=true;this.items['薬草']=(this.items['薬草']||0)+1;this.draw();this.showToast('薬草を採取した！');return;}}
+      if (this.mapId==='academy'&&this.tiles[this.pos.y][this.pos.x] === 'shop') { this.openShop(); return; }
+      if(this.mapId!=='academy'){const loc=this.areaAt(this.pos.x,this.pos.y);this.showToast(loc?`${loc}を見て回った。`:'近くに話せる人はいない。');return;}
       const lectern = D.classroom.lectern;
       if (Math.abs(lectern.x-this.pos.x) + Math.abs(lectern.y-this.pos.y) <= 2 || (this.tiles[this.pos.y][this.pos.x] === 'classroom' && this.pos.x === lectern.x && this.pos.y === lectern.y)) { this.lessonPrompt(); return; }
       if (this.tiles[this.pos.y][this.pos.x] === 'dorm') { this.showConfirm('寮で休む', '寮で休んで全員回復しますか？（戦闘不能の仲間も復帰します）', () => { this.party.forEach(c => { c.hp = c.maxHp; c.mp = c.maxMp; }); this.renderHud(); this.showToast('全員のHPとMPが回復した。'); }, null); return; }
@@ -300,29 +420,38 @@
       this.showConfirm('授業を受ける', '基礎魔法の授業を受けますか？ フレイム（火属性・MP4）を習得できます。', () => { this.learnedLesson = true; this.party[0].spells.push('フレイム'); this.save(true); this.renderHud(); this.startDialogue('授業', [D.messages.lesson]); }, null);
     },
     showConfirm(title,text,yes,no) { $('confirm-title').textContent = title; $('confirm-text').textContent = text; $('confirm-dialog').classList.remove('hidden'); this.confirmAction = () => { if (yes) yes(); }; this.confirmNoAction = no; $('confirm-no').onclick = () => { $('confirm-dialog').classList.add('hidden'); if (this.confirmNoAction) this.confirmNoAction(); }; },
-    startDialogue(name, lines) { this.dialogue = { name, lines }; this.dialogIndex = 0; $('dialogue-name').textContent = name; $('dialogue-text').textContent = lines[0]; $('dialogue').classList.remove('hidden'); },
-    nextDialogue() { if (!this.dialogue) return; this.dialogIndex++; if (this.dialogIndex >= this.dialogue.lines.length) { $('dialogue').classList.add('hidden'); this.dialogue = null; } else $('dialogue-text').textContent = this.dialogue.lines[this.dialogIndex]; },
+    startDialogue(name, lines, onDone) { this.dialogue = { name, lines, onDone }; this.dialogIndex = 0; $('dialogue-name').textContent = name; $('dialogue-text').textContent = lines[0]; $('dialogue').classList.remove('hidden'); },
+    nextDialogue() { if (!this.dialogue) return; this.dialogIndex++; if (this.dialogIndex >= this.dialogue.lines.length) { const done=this.dialogue.onDone; $('dialogue').classList.add('hidden'); this.dialogue = null; if(done)done(); } else $('dialogue-text').textContent = this.dialogue.lines[this.dialogIndex]; },
+    questReady(q) { const s=this.quests[q.id],o=q.objective;if(!s||s.state!=='accepted')return false;if(o.kind==='hunt'||o.kind==='win')return(s.count||0)>=o.count;if(o.kind==='gather')return(this.items[o.item]||0)>=o.count;if(o.kind==='deliver')return s.delivered===true;return false; },
+    openQuests() { this.renderQuests(); $('quest-panel').classList.remove('hidden'); },
+    renderQuests() { const el=$('quest-content');el.innerHTML=D.quests.map(q=>{const s=this.quests[q.id],ready=this.questReady(q),o=q.objective;let progress='';if(s?.state==='accepted')progress=o.kind==='hunt'||o.kind==='win'?`${s.count||0}/${o.count}`:o.kind==='gather'?`${this.items[o.item]||0}/${o.count}`:s.delivered?'アルベルトに届けた。報告しよう':'本を探そう';const status=!s?'未受注':s.state==='reported'?'完了':ready?'報告可能':`進行中（${progress}）`;return `<article class="quest-row"><strong>${q.title}</strong><span class="quest-type">${q.type==='hunt'?'討伐':'サブ'}</span><p>${q.desc}</p><div class="quest-status">${status}</div>${!s?`<button data-accept="${q.id}">受注する</button>`:ready?`<button data-report="${q.id}">報告する</button>`:''}</article>`;}).join('');el.querySelectorAll('[data-accept]').forEach(b=>b.onclick=()=>{this.quests[b.dataset.accept]={state:'accepted',count:0};this.renderQuests();});el.querySelectorAll('[data-report]').forEach(b=>b.onclick=()=>{const q=D.quests.find(x=>x.id===b.dataset.report),s=this.quests[q.id],r=q.reward;if(!this.questReady(q))return;this.gold+=r.gold||0;for(const[n,c]of Object.entries(r.items||{}))this.items[n]=(this.items[n]||0)+c;if(q.objective.kind==='gather')this.items[q.objective.item]-=q.objective.count;this.party.forEach(c=>this.gainExp(c,r.exp||0));s.state='reported';this.showToast('クエスト完了！報酬を受け取った');this.renderQuests();this.renderHud();}); },
+    onBattleVictory(enemies,area) { for(const q of D.quests){const s=this.quests[q.id];if(!s||s.state!=='accepted')continue;if(q.objective.kind==='hunt')s.count=(s.count||0)+enemies.filter(e=>e.id===q.objective.enemyId).length;else if(q.objective.kind==='win'&&area==='training')s.count=(s.count||0)+1;} },
     openMenu() { if ($('game-screen').classList.contains('hidden') || !$('battle').classList.contains('hidden')) return; this.menuTab = 'status'; this.renderMenu(); $('menu').classList.remove('hidden'); },
     renderMenu() {
       const el = $('menu-content');
-      if (this.menuTab === 'status') el.innerHTML = this.party.map(c => `<div class="status-row"><strong>${c.name} Lv.${c.level}</strong><span>HP ${c.hp}/${c.maxHp} · MP ${c.mp}/${c.maxMp}</span></div><div class="status-details">攻撃 ${c.atk} / 防御 ${c.def} / 魔力 ${c.mag} / 素早さ ${c.spd}<br>習得魔法: ${c.spells.length ? c.spells.join('、') : 'なし'} · 次のLvまで ${Math.max(0,this.expToNext(c.level)-c.exp)} EXP</div>`).join('');
+      if (this.menuTab === 'status') el.innerHTML = `<p>所持金 ${this.gold} G</p>` + this.party.map(c => { const s=this.statsOf(c), eq=Object.values(c.equipment||{}).map(id=>this.equipDef(id)?.name).filter(Boolean); return `<div class="status-row"><strong>${c.name} Lv.${c.level}</strong><span>HP ${c.hp}/${c.maxHp} · MP ${c.mp}/${c.maxMp}</span></div><div class="status-details">攻撃 ${s.atk}${s.atk>c.atk?`（+${s.atk-c.atk}）`:''} / 防御 ${s.def}${s.def>c.def?`（+${s.def-c.def}）`:''} / 魔力 ${s.mag}${s.mag>c.mag?`（+${s.mag-c.mag}）`:''} / 素早さ ${s.spd}${s.spd>c.spd?`（+${s.spd-c.spd}）`:''}<br>装備: ${eq.join('、')||'なし'}<br>習得魔法: ${c.spells.length ? c.spells.join('、') : 'なし'} · 次のLvまで ${Math.max(0,this.expToNext(c.level)-c.exp)} EXP</div>`; }).join('');
+      if (this.menuTab === 'equip') { const c=this.party[this.equipChar]||this.party[0], cats=['weapon','head','body','arms','accessory'], labels={weapon:'武器',head:'頭',body:'体',arms:'腕',accessory:'装飾'}; el.innerHTML=`<div class="equip-characters">${this.party.map((p,i)=>`<button data-equip-char="${i}" class="${i===this.equipChar?'selected':''}">${p.name}</button>`).join('')}</div>`+cats.map(cat=>{const id=c.equipment?.[cat], def=this.equipDef(id);return `<div class="equip-row"><strong>${labels[cat]}：${def?.name||'なし'}</strong><button data-equip-cat="${cat}">変更</button></div>`;}).join('')+(this.equipCat?`<h3>${labels[this.equipCat]}を選ぶ</h3><div class="equip-row"><span>外す</span><button data-equip-id="">選択</button></div>`+D.equipment[this.equipCat].filter(it=>(this.equipBag[it.id]||0)>0).map(it=>`<div class="equip-row"><span>${it.name} ×${this.equipBag[it.id]}</span><button data-equip-id="${it.id}">装備</button></div>`).join(''):''); }
       if (this.menuTab === 'items') el.innerHTML = Object.keys(D.items).map(name => `<div class="item-row"><span>${name} <small>${D.items[name].description}</small></span><span>×${this.items[name] || 0}</span><button data-use-item="${name}">使う</button></div>`).join('') || '<p>アイテムを持っていない。</p>';
       if (this.menuTab === 'settings') el.innerHTML = `<p>画面のぼかし</p><button id="blur-toggle">ぼかし：${this.settings.blur ? 'ON' : 'OFF'}</button>`;
       if (this.menuTab === 'save') el.innerHTML = '<p>手動セーブで現在の状態を保存します。ロードすると、保存位置から再開します。</p><p>オートセーブは授業習得時と戦闘勝利時に更新されます。</p>';
-      const blurButton = $('blur-toggle'); if (blurButton) blurButton.onclick = () => { this.settings.blur = !this.settings.blur; try { localStorage.setItem('mahou_settings_v1', JSON.stringify(this.settings)); } catch (_) {} this.applyBlur(); this.renderMenu(); };
+      const blurButton = $('blur-toggle'); if (blurButton) blurButton.onclick = () => { this.settings.blur = !this.settings.blur; try { localStorage.setItem('mahou_settings_v1', JSON.stringify({ ...this.settings, difficulty: this.difficultyChoice })); } catch (_) {} this.applyBlur(); this.renderMenu(); };
       el.querySelectorAll('[data-use-item]').forEach(b => b.onclick = () => this.useFieldItem(b.dataset.useItem));
+      el.querySelectorAll('[data-equip-char]').forEach(b=>b.onclick=()=>{this.equipChar=Number(b.dataset.equipChar);this.equipCat=null;this.renderMenu();}); el.querySelectorAll('[data-equip-cat]').forEach(b=>b.onclick=()=>{this.equipCat=b.dataset.equipCat;this.renderMenu();}); el.querySelectorAll('[data-equip-id]').forEach(b=>b.onclick=()=>this.changeEquip(b.dataset.equipId));
     },
-    useFieldItem(name) { if (!this.items[name]) return this.showToast('そのアイテムは持っていない。'); const target = this.party.find(c => c.hp > 0 && c.hp < c.maxHp); if (!target) return this.showToast('回復が必要な仲間はいない。'); this.items[name]--; const amount = Math.min(D.items[name].heal, target.maxHp-target.hp); target.hp += amount; this.renderMenu(); this.renderHud(); this.showToast(`${target.name}のHPが${amount}回復した。`); },
-    renderHud() { $('party-hud').innerHTML = this.party.map(c => `<div class="member-card"><strong><span>${c.name} Lv.${c.level}</span><span>${c.hp}/${c.maxHp}</span></strong><div class="bar"><i style="width:${100*c.hp/c.maxHp}%"></i></div><small>MP ${c.mp}/${c.maxMp}</small><div class="bar mp"><i style="width:${100*c.mp/c.maxMp}%"></i></div></div>`).join(''); },
+    changeEquip(id) { const c=this.party[this.equipChar], cat=this.equipCat, old=c.equipment[cat]; if(old) this.equipBag[old]=(this.equipBag[old]||0)+1; if(id){this.equipBag[id]--; if(!this.equipBag[id]) delete this.equipBag[id];} c.equipment[cat]=id||null; this.equipCat=null; this.renderMenu(); this.renderHud(); },
+    useFieldItem(name) { const data=D.items[name], count=this.items[name]||0; if(!count)return this.showToast('そのアイテムは持っていない。'); if(data.type==='cure')return this.showToast('戦闘中に使うアイテム'); if(!['heal','mp','revive'].includes(data.type))return this.showToast('ここでは使えない'); let target, amount=0; if(data.type==='heal') {target=this.party.find(c=>c.hp>0&&c.hp<c.maxHp);if(!target)return this.showToast('回復が必要な仲間はいない。');amount=data.heal==='all'?target.maxHp-target.hp:Math.min(Number(data.heal)||0,target.maxHp-target.hp);target.hp+=amount;} else if(data.type==='mp') {target=this.party.filter(c=>c.hp>0&&c.mp<c.maxMp).sort((a,b)=>a.mp/a.maxMp-b.mp/b.maxMp)[0];if(!target)return this.showToast('MPを回復する仲間はいない。');amount=Math.min(Number(data.mp)||0,target.maxMp-target.mp);target.mp+=amount;} else {target=this.party.find(c=>c.hp<=0);if(!target)return this.showToast('蘇生が必要な仲間はいない。');amount=Math.max(1,Math.floor(target.maxHp*(Number(data.reviveRatio)||.5)));target.hp=amount;} this.items[name]--; this.renderMenu();this.renderHud();this.showToast(`${target.name}の${data.type==='mp'?'MP':data.type==='heal'?'HP':'HP'}が${amount}回復した。`); },
+    renderHud() { $('party-hud').innerHTML = this.party.map(c => `<div class="member-card"><strong><span>${c.name} Lv.${c.level}</span><span>${c.hp}/${c.maxHp}</span></strong><div class="bar"><i style="width:${100*c.hp/c.maxHp}%"></i></div><small>MP ${c.mp}/${c.maxMp}</small><div class="bar mp"><i style="width:${100*c.mp/c.maxMp}%"></i></div></div>`).join(''); $('gold-label').textContent=`所持金 ${this.gold} G`; },
+    openShop() { this.renderShop('buy'); $('shop').classList.remove('hidden'); },
+    renderShop(mode) { this.shopMode=mode; $('shop-gold').textContent=`所持金 ${this.gold} G`; const el=$('shop-content'); let rows=[]; if(mode==='buy'){for(const [name,it] of Object.entries(D.items)) if(typeof it.price==='number') rows.push({name,price:it.price,owned:this.items[name]||0,buy:()=>{if(this.gold<it.price)return;this.gold-=it.price;this.items[name]=(this.items[name]||0)+1;}}); for(const list of Object.values(D.equipment)) for(const it of list) if(typeof it.price==='number') rows.push({name:it.name,price:it.price,owned:this.equipBag[it.id]||0,buy:()=>{if(this.gold<it.price)return;this.gold-=it.price;this.equipBag[it.id]=(this.equipBag[it.id]||0)+1;}}); el.innerHTML=rows.map((r,i)=>`<div class="shop-row"><span>${r.name}</span><span>${r.price} G · 所持 ${r.owned}</span><button data-buy="${i}" ${this.gold<r.price?'disabled':''}>買う</button></div>`).join(''); el.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{rows[Number(b.dataset.buy)].buy();this.renderShop('buy');this.renderHud();});} else {for(const [name,it] of Object.entries(D.items)) if((this.items[name]||0)>0) rows.push({name,price:typeof it.price==='number'?Math.max(1,Math.floor(it.price*.4)):null,owned:this.items[name],sell:()=>{this.items[name]--;}}); for(const list of Object.values(D.equipment)) for(const it of list) if((this.equipBag[it.id]||0)>0) rows.push({name:it.name,price:typeof it.price==='number'?Math.max(1,Math.floor(it.price*.4)):null,owned:this.equipBag[it.id],sell:()=>{this.equipBag[it.id]--;if(!this.equipBag[it.id])delete this.equipBag[it.id];}}); el.innerHTML=rows.map((r,i)=>`<div class="shop-row"><span>${r.name} ×${r.owned}</span><span>${r.price===null?'売れない':`${r.price} G`}</span><button data-sell="${i}" ${r.price===null?'disabled':''}>売る</button></div>`).join('')||'<p>売れるものがありません。</p>'; el.querySelectorAll('[data-sell]').forEach(b=>b.onclick=()=>{const r=rows[Number(b.dataset.sell)];if(r.price===null)return;r.sell();this.gold+=r.price;this.renderShop('sell');this.renderHud();});} },
     gainExp(c, amount) { c.exp += amount; let leveled = false; while (c.exp >= this.expToNext(c.level)) { c.exp -= this.expToNext(c.level); c.level++; c.maxHp += 12; c.maxMp += 4; c.atk += 3; c.def += 2; c.mag += 3; c.spd += 1; c.hp = c.maxHp; c.mp = c.maxMp; leveled = true; } if (leveled) MahouBattle.log(`${c.name}はレベル${c.level}に上がった！`); },
     expToNext(level) { return 35 + (level - 1) * 35; },
     save(auto) {
       if (!this.party.length) return false;
-      const key = auto ? 'mahou_save_auto' : 'mahou_save_manual'; const data = { version: 1, party: this.party, items: this.items, pos: this.pos, learnedLesson: this.learnedLesson, year: this.year, savedAt: Date.now() };
+      const key = auto ? 'mahou_save_auto' : 'mahou_save_manual'; const data = { version: 2, party: this.party, items: this.items, quests:this.quests, chapter:this.chapter, gold: this.gold, difficulty: this.difficulty, equipBag: this.equipBag, mapId:this.mapId, pos: this.pos, learnedLesson: this.learnedLesson, year: this.year, savedAt: Date.now() };
       try { localStorage.setItem(key, JSON.stringify(data)); this.updateContinue(); if (!auto) this.showToast('手動セーブしました。'); return true; } catch (err) { this.showToast('セーブに失敗しました。'); return false; }
     },
     readSave(key) { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; } catch (_) { return null; } },
-    applySave(data) { if (!data || !Array.isArray(data.party) || !data.pos) return false; this.party = data.party.map(c => ({ ...c, spells: Array.isArray(c.spells) ? [...c.spells] : [] })); this.items = data.items || {}; this.pos = { x: Math.max(1,Math.min(W-2,Number(data.pos.x)||D.start.x)), y: Math.max(1,Math.min(H-2,Number(data.pos.y)||D.start.y)) }; if (this.treeSet && this.treeSet.has(this.pos.x + ',' + this.pos.y)) { const free = [[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy]) => ({ x: this.pos.x + dx, y: this.pos.y + dy })).find(p => p.x >= 1 && p.y >= 1 && p.x < W - 1 && p.y < H - 1 && !this.treeSet.has(p.x + ',' + p.y) && this.tiles[p.y][p.x] !== 'wall'); if (free) this.pos = free; }
+    applySave(data) { if (!data || !Array.isArray(data.party) || !data.pos) return false; this.party = data.party.map(c => ({ ...c, spells: Array.isArray(c.spells) ? [...c.spells] : [], equipment: { weapon:null,head:null,body:null,arms:null,accessory:null,...(c.equipment||{}) } })); this.quests=data.quests&&typeof data.quests==='object'?data.quests:{};this.chapter=Number.isFinite(data.chapter)?data.chapter:1; this.gold = Number.isFinite(data.gold) ? data.gold : 300; this.difficulty = ['EASY','NORMAL','HARD'].includes(data.difficulty)?data.difficulty:'NORMAL'; this.equipBag = data.equipBag && typeof data.equipBag==='object' ? data.equipBag : {}; this.items = data.items || {}; this.setMap(data.mapId||'academy',D.start.x,D.start.y); this.pos = { x: Math.max(1,Math.min(W-2,Number(data.pos.x)||D.start.x)), y: Math.max(1,Math.min(H-2,Number(data.pos.y)||D.start.y)) }; if (this.treeSet.has(`${this.pos.x},${this.pos.y}`)||this.tiles[this.pos.y][this.pos.x]==='wall') this.pos=this.mapId==='academy'?{...D.start}:{x:15,y:this.mapId==='forest'?2:4};
       this.learnedLesson = Boolean(data.learnedLesson); this.year = data.year || 1; $('title-screen').classList.add('hidden'); $('game-screen').classList.remove('hidden'); $('menu').classList.add('hidden'); $('game-over').classList.add('hidden'); this.battle = false; this.draw(); this.renderHud(); return true; },
     loadManual() { const data = this.readSave('mahou_save_manual'); if (!data || !this.applySave(data)) return this.showToast('手動セーブがありません。'); this.showToast('手動セーブを読み込みました。'); },
     loadAny(showToast = true) { const manual = this.readSave('mahou_save_manual'), auto = this.readSave('mahou_save_auto'); const data = manual && auto ? ((auto.savedAt || 0) > (manual.savedAt || 0) ? auto : manual) : (manual || auto); if (!data || !this.applySave(data)) { if (showToast) this.showToast('読み込めるセーブがありません。'); return false; } if (showToast) this.showToast('セーブから再開しました。'); return true; },
@@ -332,7 +461,7 @@
       this.mapTall = document.createElement('canvas'); this.mapTall.width=this.canvas.width; this.mapTall.height=this.canvas.height; this.tallCtx=this.mapTall.getContext('2d');
       const b=this.baseCtx,t=this.tallCtx;
       for(let y=0;y<H;y++) for(let x=0;x<W;x++) this.drawTile(b,this.tiles[y][x],x*TILE,y*TILE,x,y);
-      for(const area of [D.classroom,D.library,D.dorm,D.shop]) {
+      for(const area of (this.mapId==='academy'?[D.classroom,D.library,D.dorm,D.shop]:[])) {
         const x=area.x1*TILE,y=area.y1*TILE,w=(area.x2-area.x1+1)*TILE,h=(area.y2-area.y1+1)*TILE;
         b.fillStyle='rgba(0,0,0,.28)';b.fillRect(x+8,y+10,w,h);
         t.fillStyle='#493b43';t.fillRect(x,y-8,w,10);t.fillStyle='#b58a59';t.fillRect(x,y-8,w,4);
@@ -340,6 +469,12 @@
         for(let wx=x+40;wx<x+w-20;wx+=92){t.fillStyle='#463d48';t.fillRect(wx,y+15,28,29);t.fillStyle='#f4c977';t.fillRect(wx+4,y+19,20,21); const g=b.createRadialGradient(wx+14,y+60,2,wx+14,y+60,58);g.addColorStop(0,'rgba(255,190,95,.16)');g.addColorStop(1,'rgba(255,190,95,0)');b.fillStyle=g;b.fillRect(wx-44,y+25,116,80);}
       }
       this.TREES.forEach(([gx,gy])=>{const x=gx*TILE+16,y=gy*TILE+18;b.fillStyle='rgba(0,0,0,.28)';b.beginPath();b.ellipse(x+8,y+7,22,9,0,0,Math.PI*2);b.fill();b.fillStyle='#60432a';b.fillRect(x-4,y-15,9,28); for(let i=0;i<18;i++){const a=((i*37+gx*13+gy*19)%97)/97*Math.PI*2,r=10+((i*17)%35),cx=x+Math.cos(a)*r,cy=y-24+Math.sin(a)*r*.7;t.fillStyle=['#174d37','#236b43','#39804b'][i%3];t.fillRect(Math.round(cx/4)*4,Math.round(cy/4)*4,8,8);}});
+      if(this.mapId==='exterior'){
+        for(const [gx,gy] of this.maps.exterior.flowers){const x=gx*TILE,y=gy*TILE;b.fillStyle='#326343';b.fillRect(x+10,y+19,12,5);b.fillRect(x+13,y+16,6,3);for(const [dx,dy,color] of [[7,15,'#ef9eb7'],[14,11,'#ffe18a'],[22,15,'#fff0df'],[11,20,'#f4b4c7'],[19,20,'#f3d36e']]){b.fillStyle=color;b.fillRect(x+dx,y+dy,3,3);}}
+        t.fillStyle='#72545a';t.fillRect(5*TILE,0,21*TILE,9);t.fillStyle='#a75543';t.fillRect(5*TILE,0,21*TILE,4);t.fillStyle='#d27850';t.fillRect(5*TILE,4,21*TILE,3);
+        t.fillStyle='#5d594f';for(let gx=5;gx<=25;gx++)for(let gy=1;gy<=2;gy++){const x=gx*TILE,y=gy*TILE;t.fillRect(x+6,y+5,20,20);t.fillStyle='#b9e4ed';t.fillRect(x+9,y+8,14,14);t.fillStyle='#eef2df';t.fillRect(x+15,y+8,2,14);t.fillRect(x+9,y+14,14,2);t.fillStyle='#5d594f';}
+        t.fillStyle='#e3d4ad';t.fillRect(13*TILE,3*TILE,5*TILE,3);t.fillStyle='#b8edf1';t.fillRect(14*TILE+8,9*TILE+8,32,3);
+      }
       this.fgArt=document.createElement('canvas');this.fgArt.width=960;this.fgArt.height=640;const f=this.fgArt.getContext('2d'); for(const [x,y] of [[-18,590],[90,640],[870,640],[970,590],[930,-10],[20,-10]]){for(let i=0;i<24;i++){f.fillStyle=['#172d2c','#203a32','#294536'][i%3];f.beginPath();f.arc(x+((i*29)%130)-50,y+((i*37)%85)-40,14+(i%4)*6,0,Math.PI*2);f.fill();}}
       this.particles=Array.from({length:36},(_,i)=>({x:(i*173+47)%960,y:(i*97+23)%640,phase:i*1.71}));
     },
@@ -347,25 +482,28 @@
     drawTitleArt(){const c=$('title-art'),x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,540);g.addColorStop(0,'#101a36');g.addColorStop(.62,'#9a5862');g.addColorStop(1,'#f2a566');x.fillStyle=g;x.fillRect(0,0,960,540);for(let i=0;i<70;i++){x.fillStyle=`rgba(255,240,200,${.3+(i%4)*.1})`;x.fillRect((i*137)%960,(i*71)%260,2,2);}x.fillStyle='#f9dda0';x.beginPath();x.arc(760,115,38,0,7);x.fill();x.fillStyle='#20243a';x.fillRect(0,365,960,175);for(const [bx,by,bw,bh] of [[120,250,170,180],[320,210,150,220],[500,270,180,160],[690,190,170,230]]){x.fillRect(bx,by,bw,bh);x.fillRect(bx+35,by-60,bw-70,60);x.beginPath();x.moveTo(bx+20,by-60);x.lineTo(bx+bw/2,by-120);x.lineTo(bx+bw-20,by-60);x.fill();for(let wx=bx+35;wx<bx+bw-15;wx+=42){x.fillStyle='#ffc979';x.fillRect(wx,by+35,12,20);}x.fillStyle='#20243a';}x.fillStyle='#11182b';x.fillRect(0,480,960,60);},
     animate(){this.animTime=(this.animTime||0)+1;this.draw();requestAnimationFrame(()=>this.animate());},
     draw() {
-      if(!this.ctx||!this.mapBase)return;const c=this.ctx;c.clearRect(0,0,960,640);c.drawImage(this.mapBase,0,0);this.drawSigns(c);
-      const actors=D.npcs.map(n=>({x:n.x,y:n.y,id:n.sprite})).concat([{x:this.pos.x,y:this.pos.y,id:'yuuki',player:true}]).sort((a,b)=>a.y-b.y);
+      if(!this.ctx||!this.mapBase)return;const c=this.ctx;c.clearRect(0,0,960,640);c.drawImage(this.mapBase,0,0);this.drawSigns(c);if(this.mapId==='academy')this.drawQuestBoard(c);
+      const actors=this.maps[this.mapId].npcs.map(n=>({x:n.x,y:n.y,id:n.sprite})).concat([{x:this.pos.x,y:this.pos.y,id:'yuuki',player:true}]).sort((a,b)=>a.y-b.y);
       actors.forEach(a=>{const cx=a.x*TILE+16,feet=(a.y+1)*TILE-2;c.fillStyle='rgba(0,0,0,.28)';c.beginPath();c.ellipse(cx+5,feet+2,13,5,0,0,Math.PI*2);c.fill();MahouSprites.drawCharacter(c,a.id,a.player?this.facing:'down',a.player?this.walkFrame:0,cx,feet,2);});
-      c.drawImage(this.mapTall,0,0);if(!this.lightGradient){this.lightGradient=c.createLinearGradient(0,0,960,640);this.lightGradient.addColorStop(0,'rgba(255,190,90,.05)');this.lightGradient.addColorStop(1,'rgba(255,190,90,.09)');this.vignette=c.createRadialGradient(480,320,150,480,320,560);this.vignette.addColorStop(0,'rgba(8,8,24,0)');this.vignette.addColorStop(1,'rgba(8,8,24,.20)');}
-      c.fillStyle=this.lightGradient;c.fillRect(0,0,960,640);c.fillStyle=this.vignette;c.fillRect(0,0,960,640);
+      c.drawImage(this.mapTall,0,0);if(!this.lightGradient){this.lightGradient=c.createLinearGradient(0,0,960,640);this.lightGradient.addColorStop(0,'rgba(255,190,90,.05)');this.lightGradient.addColorStop(1,'rgba(255,190,90,.09)');}
+      const grade=this.maps[this.mapId].grade; c.fillStyle=grade==='exterior'?'rgba(255,220,145,.10)':grade==='forest'?'rgba(24,50,24,.10)':this.lightGradient;c.fillRect(0,0,960,640);const alpha=grade==='exterior'?.08:grade==='forest'?.26:.20;c.fillStyle=`rgba(8,8,24,${alpha})`;c.fillRect(0,0,960,640);
+      if(this.mapId==='forest')this.herbs.filter(h=>!h.taken).forEach(h=>{const x=h.x*TILE+16,y=h.y*TILE+16+Math.sin((this.animTime||0)/8)*2;c.fillStyle='#b9ef77';c.beginPath();c.arc(x,y,8,0,Math.PI*2);c.fill();c.fillStyle='#fff8a8';c.fillRect(x-1,y-13,3,3);});
       const time=this.animTime||0;this.particles.forEach(p=>{const y=(p.y-time*.16+640)%640;c.fillStyle=`rgba(255,240,200,${.25+(.35*(1+Math.sin(time/35+p.phase)))/2})`;c.fillRect(p.x+Math.sin(time/40+p.phase)*5,y,1+(p.phase%2),1+(p.phase%2));});
       const mist=c.createLinearGradient(0,0,0,90);mist.addColorStop(0,'rgba(255,255,255,.10)');mist.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=mist;c.fillRect(0,0,960,90);
       if(this.settings.blur&&this.fgCtx){this.fgCtx.clearRect(0,0,960,640);this.fgCtx.drawImage(this.canvas,0,0,960,46,0,0,960,46);this.fgCtx.drawImage(this.fgArt,0,0);}
-      const loc=this.areaAt(this.pos.x,this.pos.y)||'中央ホール';$('location-label').textContent=loc;
+      const loc=this.maps[this.mapId].label==='中央ホール'?(this.areaAt(this.pos.x,this.pos.y)||'中央ホール'):this.maps[this.mapId].label;$('location-label').textContent=loc;
     },
     drawTile(ctx,kind,x,y,gx,gy) {
-      const seed=(gx*73856093^gy*19349663)>>>0;const colors={grass:'#294f39',classroom:'#876743',library:'#594d55',dorm:'#715766',shop:'#776746',training:'#92784f',hall:'#888579',wall:'#394554',door:'#60432d'};ctx.fillStyle=colors[kind]||colors.grass;ctx.fillRect(x,y,TILE,TILE);
+      const seed=(gx*73856093^gy*19349663)>>>0;const exterior=this.mapId==='exterior';const colors={grass:'#294f39',classroom:'#876743',library:'#594d55',dorm:'#715766',shop:'#776746',training:'#92784f',hall:'#888579',wall:exterior&&gy<=2?'#d8c9a4':'#394554',door:'#60432d'};ctx.fillStyle=colors[kind]||colors.grass;ctx.fillRect(x,y,TILE,TILE);
       if(kind==='grass'){for(let i=0;i<5;i++){const px=x+((seed+i*31)%30),py=y+((seed>>>3+i*17)%30);ctx.fillStyle=i%2?'#47734a':'#355c3e';ctx.fillRect(px,py,2,3);}}
-      else if(kind==='hall'||kind==='wall'){ctx.strokeStyle='#202a3266';ctx.strokeRect(x,y,TILE,TILE);ctx.fillStyle='#a8a39755';ctx.fillRect(x+((gx%2)*16)+2,y+4,11,2);ctx.fillRect(x+4,y+19,19,2);}
+      else if(kind==='hall'||kind==='wall'){if(exterior&&kind==='wall'&&gy<=2){ctx.fillStyle='#c3b18d';ctx.fillRect(x,y+29,TILE,3);if(gy>0){ctx.fillStyle='#5d594f';ctx.fillRect(x+6,y+5,20,20);ctx.fillStyle='#b9e4ed';ctx.fillRect(x+9,y+8,14,14);ctx.fillStyle='#eef2df';ctx.fillRect(x+15,y+8,2,14);ctx.fillRect(x+9,y+14,14,2);}}else{ctx.strokeStyle='#202a3266';ctx.strokeRect(x,y,TILE,TILE);ctx.fillStyle='#a8a39755';ctx.fillRect(x+((gx%2)*16)+2,y+4,11,2);ctx.fillRect(x+4,y+19,19,2);}}
+      else if(kind==='fountain'){ctx.fillStyle='#69b6d4';ctx.fillRect(x+2,y+2,TILE-4,TILE-4);ctx.fillStyle='#b7e9ed';ctx.fillRect(x+8+(gx%2)*7,y+9+(gy%2)*5,3,3);ctx.fillRect(x+23-(gx%2)*5,y+20,2,2);ctx.fillStyle='#f8ffff';ctx.fillRect(x+9+(gx%2)*7,y+8+(gy%2)*5,2,2);ctx.fillRect(x+24-(gx%2)*5,y+19,2,2);if(gx===14||gx===16){ctx.fillStyle='#969b9a';ctx.fillRect(x+(gx===14?0:26),y,6,TILE);ctx.fillStyle='#c3c8c3';ctx.fillRect(x+(gx===14?0:26),y+2,4,TILE-4);}if(gy===9){ctx.fillStyle='#969b9a';ctx.fillRect(x,y, TILE,5);ctx.fillStyle='#c3c8c3';ctx.fillRect(x+2,y, TILE-4,3);}if(gy===10){ctx.fillStyle='#969b9a';ctx.fillRect(x,y+27,TILE,5);ctx.fillStyle='#c3c8c3';ctx.fillRect(x+2,y+29,TILE-4,3);}if(gx===15&&gy===9){ctx.fillStyle='#858b8b';ctx.fillRect(x+11,y+10,10,17);ctx.fillStyle='#c5c9c5';ctx.fillRect(x+9,y+25,14,4);ctx.fillStyle='#a7e7ef';ctx.fillRect(x+12,y+3,8,8);ctx.fillStyle='#efffff';ctx.fillRect(x+14,y+3,3,3);}}
       else if(['classroom','library','dorm','shop'].includes(kind)){ctx.fillStyle='#251d2266';for(let i=0;i<4;i++)ctx.fillRect(x,y+i*9,TILE,1);for(let i=0;i<4;i++)ctx.fillRect(x+((seed+i*9)%30),y+((seed>>>2+i*7)%30),2,1);if(kind==='library'){ctx.fillStyle='#80614c';ctx.fillRect(x,y+14,TILE,4);}}
       else if(kind==='training'){ctx.fillStyle='#aa9064';for(let i=0;i<5;i++)ctx.fillRect(x+(seed+i*7)%30,y+(seed>>>2+i*11)%30,2,2);ctx.strokeStyle='#d0b27a88';ctx.beginPath();ctx.arc(x+16,y+16,9,0,Math.PI*2);ctx.stroke();}
       else if(kind==='door'){ctx.fillStyle='#9a6d3c';ctx.fillRect(x+6,y+3,20,29);ctx.fillStyle='#d5aa57';ctx.fillRect(x+21,y+16,2,3);}
     },
-    drawSigns(ctx) { const signs=[['教室',5,2],['図書館',24,2],['寮',5,17],['ショップ',24,17],['訓練場',14,17],['中央ホール',14,6]];ctx.font='bold 15px sans-serif';ctx.textAlign='center';signs.forEach(([t,x,y])=>{const px=x*TILE+16,py=y*TILE+16;ctx.fillStyle='#101726cc';ctx.fillRect(px-44,py-12,88,24);ctx.strokeStyle='#e6d29a';ctx.strokeRect(px-44,py-12,88,24);ctx.fillStyle='#fff1c7';ctx.fillText(t,px,py+5);}); },
+    drawQuestBoard(ctx) { const x=18*TILE+6,y=7*TILE+3;ctx.fillStyle='#392619';ctx.fillRect(x+3,y+5,20,26);ctx.fillStyle='#80502e';ctx.fillRect(x,y,26,20);ctx.strokeStyle='#c99a5b';ctx.lineWidth=2;ctx.strokeRect(x,y,26,20);for(const[a,b]of [[4,4],[13,3],[8,11]]){ctx.fillStyle='#f0dfb4';ctx.fillRect(x+a,y+b,8,5);ctx.fillStyle='#806849';ctx.fillRect(x+a+1,y+b+2,5,1);} } ,
+    drawSigns(ctx) { const signs=this.maps[this.mapId].signs;ctx.font='bold 15px sans-serif';ctx.textAlign='center';signs.forEach(([t,x,y])=>{const px=x*TILE+16,py=y*TILE+16;ctx.fillStyle='#101726cc';ctx.fillRect(px-44,py-12,88,24);ctx.strokeStyle='#e6d29a';ctx.strokeRect(px-44,py-12,88,24);ctx.fillStyle='#fff1c7';ctx.fillText(t,px,py+5);}); },
   };
   window.MahouGame = game; game.init();
 })();
