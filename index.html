@@ -275,10 +275,14 @@
     // v14: called at x0=21 so the rope straddles the centre panel's right edge, and weave bumps at
     // x0+6 poke 1px past the side panel (x26) — the braid finally contributes to the back silhouette.
     const braidBack=(x0)=>{ for(let y=21;y<=35;y++) put(g,x0-1,y,'q');
-      for(let s=0;s<5;s++){ const y0=21+s*3, d=s%2?1:-1;
+      // v15: the slide pattern is no longer a strict +-1 alternation and the silhouette bumps are
+      // irregularly spaced — the regular 3-row rhythm read as horizontal stripes / a ladder (both
+      // v14 reviews). The rope still ends in the red tie and tuft.
+      const ds=[-1,1,0,1,-1];
+      for(let s=0;s<5;s++){ const y0=21+s*3, d=ds[s];
         for(let r=0;r<3;r++){ const xx=x0+(d>0?r:2-r), main=r===1?'H':'h', edge=r===1?'h':'H';
           put(g,xx,y0+r,main); put(g,xx+1,y0+r,main); put(g,xx+2,y0+r,edge); put(g,xx+3,y0+r,'h'); } }
-      for(const by of [23,26,29,32]) put(g,x0+6,by,'h');
+      for(const by of [23,27,30,34]) put(g,x0+6,by,'h');
       rect(g,x0,36,x0+4,37,'P'); put(g,x0+1,38,'H'); put(g,x0+2,38,'H'); put(g,x0+3,38,'h'); };
     if(side){
       // profile head facing left (head rows 0..20)
@@ -306,8 +310,12 @@
       if(style==='curly'){ for(const bx of [9,13,17,20]){ put(g,bx,0,'H'); put(g,bx+1,0,'H'); put(g,bx,1,'h'); } for(let i=0;i<7;i++)put(g,10+i*2,6+(i%3),'L'); put(g,10,20,'H'); put(g,15,21,'H'); put(g,20,20,'H'); }
       if(style==='long'&&!pony){ rect(g,5,5,8,40,'H'); rect(g,23,5,26,39,'H'); rect(g,6,6,7,38,'h'); rect(g,24,6,25,37,'h'); rect(g,9,16,22,38,'H'); rect(g,11,18,12,36,'h'); rect(g,19,18,20,36,'h');
         // v12 back hair: clump steps across the centre panel (stepped, not straight lines) + tapered tips (was a flat slab with an H pattern)
-        for(let x=10;x<=21;x++) put(g,x,24+(x<16?0:1),'h');
-        for(let x=10;x<=21;x++) put(g,x,31+(x<14?1:0),'h');
+        // v15: the two near-full-width 'h' rows still read as horizontal stripes (v14 Antigravity).
+        // They are now broken into offset clump segments, and two short vertical strand separations
+        // cut the panel vertically so the back reads as hair masses, not bands.
+        for(const x of [10,11,12,13,18,19,20,21]) put(g,x,24,'h');
+        for(const x of [11,12,13,14,15,19,20]) put(g,x,31,'h');
+        for(let y=26;y<=29;y++){ put(g,13,y,'h'); put(g,18,y+1,'h'); }
         put(g,5,39,'.'); put(g,5,40,'.'); put(g,8,40,'.'); put(g,23,40,'.');
         rect(g,13,39,18,39,'H'); put(g,15,40,'H'); put(g,16,40,'H');
         // v14: flared wavy tips, left panel 1 row longer than the right (asymmetric hem — Elena's back panel is short and straight-cut)
@@ -317,8 +325,11 @@
         rect(g,6,5,8,20,'H'); rect(g,7,6,7,18,'h');
         // v14 ponytail: a separate tail right of the panel, joined only at the gold band — the x23
         // notch stays empty below the tie so the tail reads as its own mass in silhouette too
-        rect(g,20,7,25,8,'A'); rect(g,21,9,26,11,'H');
-        rect(g,24,12,28,23,'H'); rect(g,25,13,27,21,'h'); rect(g,24,24,27,31,'H'); put(g,25,32,'H'); put(g,26,32,'h');
+        // v15: tail shifted 1px right and the bridge narrowed — the gap under the bridge is now 2
+        // empty columns (x23..24), so the tail stops merging into the torso in the back silhouette
+        // (v14 Antigravity: gap too narrow, read as one mass)
+        rect(g,20,7,25,8,'A'); rect(g,21,9,25,11,'H');
+        rect(g,25,12,29,23,'H'); rect(g,26,13,28,21,'h'); rect(g,25,24,28,31,'H'); put(g,26,32,'H'); put(g,27,32,'h');
         put(g,22,3,'A'); put(g,23,3,'A'); }
       if(style==='beard'){ // v13: was a solid 'L' band + skin patch = an unnatural white stripe across the back of the head; now the hair mass stays 'H' with only scattered light tufts
         put(g,12,2,'L'); put(g,13,2,'L'); put(g,17,3,'L'); put(g,18,2,'L'); put(g,12,5,'h'); put(g,15,5,'h'); put(g,18,5,'h'); rect(g,9,6,10,15,'H'); rect(g,21,6,22,15,'H'); }
@@ -803,6 +814,16 @@
         const cl=[[x+(seed%7)-3,y-50,10*sc,7*sc,seed+67],[x-7,y-44,13*sc,10*sc,seed+21],[x+9,y-39-jy,12*sc,9*sc,seed+29],[x+15,y-25,13*sc,11*sc,seed+13],[x-16,y-22+jy,14*sc,11*sc,seed+7]];
         if(seed%3!==0)cl.splice(3,0,[x-23,y-33,10*sc,8*sc,seed+43]);if(seed%4!==1)cl.splice(4,0,[x+24,y-36,9*sc,7*sc,seed+51]);
         cl.push([x+jx,y-30,19*sc,14*sc,seed]);
+        // v15: 3 canopy variants so the identical stamp stops repeating (both reviews, carried since
+        // v12). Variant is chosen by an independent hash bit, NOT seed%3 — the layout above already
+        // branches on seed%3/%4, which would correlate the variant with the layout.
+        const tv=(seed>>>11)%3;
+        if(tv===1){ // tall & narrow: masses lifted, squeezed horizontally, far side masses dropped
+          for(let i=cl.length-1;i>=0;i--){if(Math.abs(cl[i][0]-x)>20){cl.splice(i,1);continue;}cl[i][1]-=7;cl[i][2]*=.82;cl[i][3]*=1.12;}
+        } else if(tv===2){ // wide & low: masses spread and flattened, one extra low mass
+          cl.forEach(a=>{a[1]+=3;a[2]*=1.14;a[3]*=.86;});
+          cl.splice(2,0,[x-21,y-15,12*sc,7*sc,seed+91]);
+        }
         cl.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],0));
         cl.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],1));
         cl.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],3));
@@ -817,6 +838,9 @@
         const cl2=[[x-11,y-65,18*sc2,15*sc2,seed+21],[x+13,y-61,15*sc2,12*sc2,seed+29],[x+26,y-52,10*sc2,8*sc2,seed+53],[x-23,y-35,18*sc2,15*sc2,seed+7],[x+22,y-39,17*sc2,14*sc2,seed+13]];
         if(seed%3!==1)cl2.unshift([x-2,y-77,13*sc2,10*sc2,seed+37]);
         cl2.push([x,y-48,26*sc2,21*sc2,seed]);
+        // v15: big trees get 2 variants — mirrored canopy (half of them) and a taller top (a third)
+        if((seed>>>9)%2)cl2.forEach(a=>{a[0]=2*x-a[0];});
+        if((seed>>>13)%3===0)cl2.forEach(a=>{a[1]-=5;a[3]*=1.08;});
         cl2.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],0));
         cl2.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],1));
         cl2.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],3));
@@ -1012,16 +1036,37 @@
       // slate field fills y0..62 first, so the roof reads as one mass seen from above — this area is
       // now on screen permanently with the v14 pinned framing, so it had to be fixed with it.
       const SLN={hl:'#5d7fb5',lt:'#46639c',md:'#354e80',dk:'#2a3f6b',ol:'#1c2c4e'};
-      slates(512,0,3072,62,SLN);
       const peaks=[[704,44],[1088,34],[1472,24],[1856,12],[2240,12],[2624,24],[3008,34],[3392,44]];
-      // v13 top-down conversion: the slate field is extended from y106 to y140 so the roof reads as a
-      // deep sloped plane seen from above, not a band on top of an elevation. The wave silhouette stays
-      // (it is Chiba's target-image design); the slope's own band shading (lt->md->dk toward the eave,
-      // already inside slates()) sells the incline. Claude's design call: slope:wall ~1.9:1, not 2.8:1.
-      for(const [cx,py] of peaks)slates(cx-192,py+16,384,140-(py+16),SL);
+      // v15 roof reorganization (Claude v14's top weakness: "staircase patches, ambiguous ridge" —
+      // the v13 build tiled the slope with slates() per peak, and the overlapping fields' band
+      // shading misaligned into a checker of small patches). The roof is now drawn as a FEW LARGE
+      // PLANES with explicit lines, same base+shadow palette, no added detail density:
+      //  - north slope: ONE flat plane + a designed ridge beam whose ENDS are drawn (v14
+      //    Antigravity: "the ridge's end cannot be seen")
+      //  - south slope: two flat planes (upper md / lower dk) split by ONE course line at y100,
+      //    divided into 8 bays by valley lines; gable triangles keep their flat 3-tone split but
+      //    lose the per-step bottom lines that striped them
+      //  - the wave silhouette is traced as a real ridge line (light cap + dark line)
+      // Silhouette, eave (y138..144) and the slope:wall ratio are unchanged from v13/v14.
+      const roofTop=(x)=>{let t=58;for(const [cx,py] of peaks){const d=Math.abs(x-cx);if(d<192)t=Math.min(t,Math.round(py+(58-py)*d/192));}return t;};
+      // north slope: one flat plane, with a quiet dark seat where it dives behind the ridge line
+      R(512,0,3072,62,SLN.md);
+      R(512,52,3072,10,SLN.dk);
+      // ridge beam: capped line across the full width + end posts, so the ridge visibly ENDS
+      R(512,4,3072,4,SLN.lt);R(512,8,3072,2,SLN.ol);
+      R(512,4,10,26,SLN.dk);R(512,4,2,26,SLN.ol);R(3574,4,10,26,SLN.dk);R(3582,4,2,26,SLN.ol);
+      R(508,2,6,6,SLN.lt);R(3582,2,6,6,SLN.lt);
+      // south slope: two large flat planes following the wave silhouette (per 4px column)
+      for(let x=512;x<3584;x+=4){const t=roofTop(x);R(x,t,4,100-t,SL.md);R(x,100,4,38,SL.dk);}
+      R(512,98,3072,2,SL.ol); // the single course line splitting the two planes
+      // gable triangles: flat 3-tone split, NO per-step lines
       for(const [cx,py] of peaks){const halfW=192,valleyY=58;
-        for(let y=py;y<valleyY;y+=6){const t=(y-py)/(valleyY-py),hw=Math.round(halfW*t);if(hw<=2)continue;R(cx-hw,y,hw*2,6,SL.md);R(cx-hw,y,Math.round(hw*.62),6,SL.lt);R(cx+Math.round(hw*.55),y,hw-Math.round(hw*.55),6,SL.dk);R(cx-hw,y+5,hw*2,1,SL.dk);}
+        for(let y=py;y<valleyY;y+=4){const t=(y-py)/(valleyY-py),hw=Math.round(halfW*t);if(hw<=2)continue;R(cx-hw,y,hw*2,4,SL.md);R(cx-hw,y,Math.round(hw*.62),4,SL.lt);R(cx+Math.round(hw*.55),y,hw-Math.round(hw*.55),4,SL.dk);}
         R(cx-3,py-2,6,4,SL.lt);}
+      // valley lines: one dark line down each bay boundary — the slope reads as 8 large planes
+      for(let vx=896;vx<3584;vx+=384){R(vx-1,58,2,40,SL.ol);R(vx-1,100,2,38,SL.ol);}
+      // ridge trace along the wave silhouette: light cap on the north side, dark line on the south
+      for(let x=512;x<3584;x+=4){const t=roofTop(x);R(x,t-3,4,2,'#7d9cc9');R(x,t-1,4,1,SLN.ol);R(x,t,4,2,SL.ol);}
       R(512,138,3072,4,SL.dk);R(512,142,3072,2,SL.ol); // v13: dark lowest course + eave line at the slope's foot
       // dormers (v13: moved down onto the deepened slope, bases at y134)
       for(const dx of [820,3020]){for(let i=0;i<4;i++){const w=44-i*9,y=116-i*7;R(dx-Math.round(w/2),y,w,7,SL.md);R(dx-Math.round(w/2),y,Math.round(w*.4),7,SL.lt);R(dx-Math.round(w/2),y+6,w,1,SL.dk);}R(dx-13,104,26,26,ST.lt);R(dx-9,108,18,18,'#7ea6d8');R(dx-9,120,18,6,'#5f83b8');R(dx-1,108,2,18,ST.lt);R(dx-17,130,34,4,ST.dk);}
@@ -1044,9 +1089,9 @@
       for(let sx=536;sx<3584;sx+=46)R(sx,220,2,22,ST.md); // slab seams
       bricks(512,246,3072,24,BR2); // terrace front face
       R(512,246,3072,6,'rgba(24,16,36,.30)'); // shadow under the slab lip
-      for(let gx=8;gx<56;gx++){const bx=gx*64,pv=(((gx>>1)*31+57)>>>0)%4; // ground apron, tile by tile
+      for(let gx=8;gx<56;gx++){const bx=gx*64,pv=(((gx>>2)*31+57)>>>0)%4; // ground apron, tile by tile (v15: same 4x4-block, narrowed-tone grass as drawTile)
         if(gx>=24&&gx<40){R(bx,270,64,50,'#bca893');R(bx,286,64,2,'#a5906f');R(bx,302,64,2,'#a5906f');R(bx+((gx*13)%29),270,2,50,'#a5906f');} // plaza stone beside the steps
-        else{R(bx,270,64,50,['#5fa83c','#63ac40','#59a238','#5fa83c'][pv]);for(let q=0;q<3;q++){const hh=hash(gx*3+q,271);R(bx+2+(hh%27)*2,274+((hh>>>8)%42),2,3,'#2f6b2b');R(bx+3+(hh%27)*2,273+((hh>>>8)%42),1,1,'#7fc645');}}} // grass matching the tile grammar
+        else{R(bx,270,64,50,['#5fa83c','#62a840','#5da53b','#5fa83c'][pv]);for(let q=0;q<3;q++){const hh=hash(gx*3+q,271);R(bx+2+(hh%27)*2,274+((hh>>>8)%42),2,3,'#2f6b2b');R(bx+3+(hh%27)*2,273+((hh>>>8)%42),1,1,'#7fc645');}}} // grass matching the tile grammar
       // ---------- windows: v13 squashed for the top-down wall (64 -> 46 bake px tall, arch top y160, sill y196) ----------
       for(let gx=10;gx<=53;gx+=3){if(gx>=29&&gx<=34)continue;const fx=(gx*32+10)*2,h=hash(gx,77);
         R(fx-28,160,18,36,SL.md);R(fx-28,160,18,2,SL.lt);for(const sy of [172,184])R(fx-28,sy,18,2,SL.dk);
@@ -1068,12 +1113,14 @@
       // ---------- v7 porch wave roof: 3 gables over the arches, peaks inside the start-view band ----------
       // v14: SL2 shifted lighter and toward violet (was one step lighter than the main roof — both
       // v13 reviews read the porch roof as part of the main roof). Hue + lightness now separate them.
-      const SL2={hl:'#ccd6f8',lt:'#a3b1ec',md:'#8494dc',dk:'#5f6fb8',ol:'#424e8c'};
+      // v15: pulled back toward the main roof's blue family (v14 Antigravity: the violet floated);
+      // separation now comes from lightness + the fascia/outline below, not from hue distance.
+      const SL2={hl:'#c9d8f8',lt:'#9db4e8',md:'#7d94d6',dk:'#5a6fb4',ol:'#3e4e86'};
       // v13: porch roof plane deepened (valley 68->58, eave 86->104) so it reads as a slope seen from
       // above like the main roof; the slate course pitch stays identical to the main roof (12 bake px)
       const PR={x0:1696,x1:2400,valley:58,eave:104};
       for(const [pcx,py] of [[1813,36],[2048,32],[2282,36]]){const halfW=118;
-        for(let y=py;y<PR.valley;y+=6){const t=(y-py)/(PR.valley-py),hw=Math.round(halfW*t);if(hw<=2)continue;R(pcx-hw,y,hw*2,6,SL2.md);R(pcx-hw,y,Math.round(hw*.62),6,SL2.lt);R(pcx+Math.round(hw*.55),y,hw-Math.round(hw*.55),6,SL2.dk);R(pcx-hw,y+5,hw*2,1,SL2.dk);for(const so of [-84,-56,-28,0,28,56,84])if(Math.abs(so)<hw-8)R(pcx+so,y,1,6,SL2.ol);R(pcx-hw,y,2,6,ST.hl);R(pcx-hw+2,y,1,6,ST.dk);R(pcx+hw-2,y,2,6,ST.md);R(pcx+hw-3,y,1,6,ST.ol);}
+        for(let y=py;y<PR.valley;y+=6){const t=(y-py)/(PR.valley-py),hw=Math.round(halfW*t);if(hw<=2)continue;R(pcx-hw,y,hw*2,6,SL2.md);R(pcx-hw,y,Math.round(hw*.62),6,SL2.lt);R(pcx+Math.round(hw*.55),y,hw-Math.round(hw*.55),6,SL2.dk);for(const so of [-84,-56,-28,0,28,56,84])if(Math.abs(so)<hw-8)R(pcx+so,y,1,6,SL2.ol);R(pcx-hw,y,2,6,ST.hl);R(pcx-hw+2,y,1,6,ST.dk);R(pcx+hw-2,y,2,6,ST.md);R(pcx+hw-3,y,1,6,ST.ol);} // v15: per-step bottom line removed (same striping family as the main roof)
         R(pcx-3,py-3,6,3,ST.lt);R(pcx-1,py-5,2,2,'#ffd94d');}
       // v9: the field's lower edge zigzags with the gables (deepest under each gable centre, rising at the valleys) — clipped slate field
       const eaveAt=(x)=>{let bot=78;for(const pcx of [1813,2048,2282]){const d=Math.abs(x-pcx);if(d<118)bot=Math.max(bot,104-Math.round(d*26/118));}return bot;};
@@ -1085,10 +1132,13 @@
       // v9 shape separation: each gable drops a shadow onto the field below it, so the gables read as raised shapes, not paint
       for(const pcx of [1813,2048,2282])R(pcx-118,PR.valley,236,4,'rgba(24,16,36,.30)');
       // v9: stone trim following the zigzag eave (stepped per 4px column), with dark end caps — the target's eave is a folded ribbon, not a straight board
-      for(let x=PR.x0-4;x<PR.x1+4;x+=4){const bot=eaveAt(Math.max(PR.x0,Math.min(PR.x1,x)));R(x,bot,4,1,ST.hl);R(x,bot+1,4,2,ST.lt);R(x,bot+3,4,1,ST.dk);}
+      // v15: a fascia band under the trim gives the slab real THICKNESS (both v14 reviews: the porch
+      // roof was a thin sheet — a 4px trim with the shadow directly beneath it). The cast shadow
+      // now starts below the fascia.
+      for(let x=PR.x0-4;x<PR.x1+4;x+=4){const bot=eaveAt(Math.max(PR.x0,Math.min(PR.x1,x)));R(x,bot,4,1,ST.hl);R(x,bot+1,4,2,ST.lt);R(x,bot+3,4,1,ST.dk);R(x,bot+4,4,5,SL2.dk);R(x,bot+9,4,1,SL2.ol);}
       // v14: the shadow the porch roof casts onto the surface behind it, following the zigzag eave —
       // with the palette split this is what finally reads as "a separate roof overlapping the main one"
-      for(let x=PR.x0-4;x<PR.x1+4;x+=4){const bot=eaveAt(Math.max(PR.x0,Math.min(PR.x1,x)));R(x,bot+4,4,6,'rgba(20,14,32,.42)');}
+      for(let x=PR.x0-4;x<PR.x1+4;x+=4){const bot=eaveAt(Math.max(PR.x0,Math.min(PR.x1,x)));R(x,bot+10,4,5,'rgba(20,14,32,.38)');}
       R(PR.x0-4,eaveAt(PR.x0)-2,2,6,SL2.ol);R(PR.x1+2,eaveAt(PR.x1)-2,2,6,SL2.ol);
       // ---------- clock spire: sits on the porch roof, face set into its base ----------
       cone(2048,42,9,250,16,5);
@@ -1106,6 +1156,7 @@
         // ground shadow + elliptical plinth base (v13: ellipse ratios fattened toward the project's
         // top-down ellipse grammar — eave ry 8->22, plinth 9->12, ground shadow 8->12)
         EL(cxL+8,218,102,12,'rgba(28,42,26,.40)');
+        EL(cxL+6,218,62,7,'rgba(18,30,16,.50)'); // v15: darker core inside the tower's ground shadow (flat single-tone shadow, Claude v14)
         EL(cxL,206,94,12,'#5d4c3c');
         // body: 4px vertical strips sampled from the cylinder ramp (light peak at ~32%); v13: 102 -> 88 tall
         for(let sx=tx;sx<tx+176;sx+=4)R(sx,118,4,88,bandAt(BRramp,(sx+2-tx)/176));
@@ -1176,9 +1227,10 @@
       for(const lx of [1954,2142]){R(lx-6,166,12,3,'#4a3a28');R(lx-4,169,8,12,'#ffe9a8');R(lx-6,181,12,3,'#4a3a28');}
       for(let i=0;i<3;i++){const w=640+i*36,sx=2048-Math.round(w/2),sy=276+i*13;R(sx,sy,w,3,ST.hl);R(sx,sy+3,w,6,ST.lt);R(sx,sy+9,w,4,ST.dk);}
       R(1702,315,712,5,'rgba(28,42,26,.30)'); // v11: baked ground shadow the steps cast onto the plaza
+      R(1746,315,624,2,'rgba(20,34,18,.45)'); // v15: core line inside the steps' shadow
       b.restore();
     },
-    buildCastleShadows(){const c=document.createElement('canvas');c.width=this.mapBase.width;c.height=this.mapBase.height;const x=c.getContext('2d');x.setTransform(SS,0,0,SS,0,0);x.fillStyle='#33503e';const cast=(a,b,y,dx,dy)=>{x.beginPath();x.moveTo(a,y);x.lineTo(b,y);x.lineTo(b+dx,y+dy);x.lineTo(a+dx,y+dy);x.closePath();x.fill();};cast(256,1792,140,48,24);cast(724,812,140,38,18);cast(1236,1324,140,38,18);cast(864,1184,158,30,16);x.fillRect(252,136,598,4);x.fillRect(1200,136,596,4);x.fillRect(850,156,360,4); /* v14: plinth contact shadow moved 115->136 (terrace face now ends at bake 270 = logical 135) */ for(const px of [872,966,1060,1154])cast(px,px+22,158,16,13);for(const [gx,gy] of (this.bigTrees||[])){x.beginPath();x.ellipse(gx*32+16+10,gy*32+30,30,9,0,0,Math.PI*2);x.fill();}for(const [gx,gy] of this.TREES){x.beginPath();x.ellipse(gx*32+16+25,gy*32+16+16,20,8,0,0,Math.PI*2);x.fill();}for(let gy=0;gy<this.mapH();gy++)for(let gx=0;gx<this.mapW();gx++){const k=this.tiles[gy][gx];if(k==='hedge'&&this.tiles[gy+1]?.[gx]!=='hedge')x.fillRect(gx*32+2,gy*32+30,31,7);else if(k==='bench')x.fillRect(gx*32+4,gy*32+23,28,6);else if(k==='plant'){x.beginPath();x.ellipse(gx*32+19,gy*32+29,10,4,0,0,Math.PI*2);x.fill();}}x.beginPath();x.ellipse(1024+22,452,11,4,.55,0,Math.PI*2);x.fill();this.shadowLayer=c;},
+    buildCastleShadows(){const c=document.createElement('canvas');c.width=this.mapBase.width;c.height=this.mapBase.height;const x=c.getContext('2d');x.setTransform(SS,0,0,SS,0,0);x.fillStyle='#33503e';const cast=(a,b,y,dx,dy)=>{x.beginPath();x.moveTo(a,y);x.lineTo(b,y);x.lineTo(b+dx,y+dy);x.lineTo(a+dx,y+dy);x.closePath();x.fill();};cast(256,1792,140,48,24);cast(724,812,140,38,18);cast(1236,1324,140,38,18);cast(864,1184,158,30,16);x.fillRect(252,136,598,4);x.fillRect(1200,136,596,4);x.fillRect(850,156,360,4); /* v14: plinth contact shadow moved 115->136 (terrace face now ends at bake 270 = logical 135) */ for(const px of [872,966,1060,1154])cast(px,px+22,158,16,13);for(const [gx,gy] of (this.bigTrees||[])){x.beginPath();x.ellipse(gx*32+16+10,gy*32+30,30,9,0,0,Math.PI*2);x.fill();}for(const [gx,gy] of this.TREES){x.beginPath();x.ellipse(gx*32+16+25,gy*32+16+16,20,8,0,0,Math.PI*2);x.fill();}for(let gy=0;gy<this.mapH();gy++)for(let gx=0;gx<this.mapW();gx++){const k=this.tiles[gy][gx];if(k==='hedge'&&this.tiles[gy+1]?.[gx]!=='hedge')x.fillRect(gx*32+2,gy*32+30,31,7);else if(k==='bench')x.fillRect(gx*32+4,gy*32+23,28,6);else if(k==='plant'){x.beginPath();x.ellipse(gx*32+19,gy*32+29,10,4,0,0,Math.PI*2);x.fill();}}x.beginPath();x.ellipse(1024+22,452,11,4,.55,0,Math.PI*2);x.fill(); /* v15 cores: a smaller, darker heart inside the big flat casts so the ground shadows stop reading as uniform tint bands (Claude v14) */ x.fillStyle='#203826';cast(256,1792,140,26,13);cast(724,812,140,20,10);cast(1236,1324,140,20,10);cast(864,1184,158,16,9);x.fillRect(252,137,598,2);x.fillRect(1200,137,596,2);x.fillRect(850,157,360,2);for(const px of [872,966,1060,1154])cast(px,px+22,158,9,7);for(const [gx,gy] of (this.bigTrees||[])){x.beginPath();x.ellipse(gx*32+16+7,gy*32+30,17,5,0,0,Math.PI*2);x.fill();}for(const [gx,gy] of this.TREES){x.beginPath();x.ellipse(gx*32+16+20,gy*32+16+16,11,4,0,0,Math.PI*2);x.fill();}for(let gy=0;gy<this.mapH();gy++)for(let gx=0;gx<this.mapW();gx++){if(this.tiles[gy][gx]==='hedge'&&this.tiles[gy+1]?.[gx]!=='hedge')x.fillRect(gx*32+3,gy*32+31,29,3);}this.shadowLayer=c;},
     drawEdges(b){const stone=new Set(['stone','path']);for(let y=0;y<this.mapH();y++)for(let x=0;x<this.mapW();x++){const k=this.tiles[y][x],px=x*32,py=y*32;if(stone.has(k)){for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]])if(this.tiles[y+dy]?.[x+dx]==='grass'){b.fillStyle='#7d6b5d';b.fillRect(px+(dx===1?31:dx===-1?0:0),py+(dy===1?31:0),32,1);}} /* v11: grass-blade spill onto stone removed — it read as stray green dots scattered over the paths (both v10 reviews) */if(k==='water'&&y>0&&this.tiles[y-1][x]!=='water'){b.fillStyle='#7d6b5d';b.fillRect(px,py,32,6);b.fillStyle='#cfefff';b.fillRect(px,py,32,1);}}},
     applyBlur(){ if(this.fg) this.fg.closest('#world-frame').classList.toggle('no-blur',!this.settings.blur); },
     drawTitleArt(){const c=$('title-art'),x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,540);g.addColorStop(0,'#101a36');g.addColorStop(.62,'#9a5862');g.addColorStop(1,'#f2a566');x.fillStyle=g;x.fillRect(0,0,960,540);for(let i=0;i<70;i++){x.fillStyle=`rgba(255,240,200,${.3+(i%4)*.1})`;x.fillRect((i*137)%960,(i*71)%260,2,2);}x.fillStyle='#f9dda0';x.beginPath();x.arc(760,115,38,0,7);x.fill();x.fillStyle='#20243a';x.fillRect(0,365,960,175);for(const [bx,by,bw,bh] of [[120,250,170,180],[320,210,150,220],[500,270,180,160],[690,190,170,230]]){x.fillRect(bx,by,bw,bh);x.fillRect(bx+35,by-60,bw-70,60);x.beginPath();x.moveTo(bx+20,by-60);x.lineTo(bx+bw/2,by-120);x.lineTo(bx+bw-20,by-60);x.fill();for(let wx=bx+35;wx<bx+bw-15;wx+=42){x.fillStyle='#ffc979';x.fillRect(wx,by+35,12,20);}x.fillStyle='#20243a';}x.fillStyle='#11182b';x.fillRect(0,480,960,60);},
@@ -1214,7 +1266,7 @@
         const STp={hl:'#e8d9c7',lt:'#d3c0ac',md:'#bca893',dk:'#9b8774',ol:'#7d6b5d'};
         const BRt={hl:'#d8c8ae',lt:'#b39d7d',md:'#9a8468',dk:'#77644e',ol:'#4a3d33',va:'#a58d6d',vb:'#8f7660'};
         const LFt={hl:'#93d94e',lt:'#7fc645',md:'#4f9a34',dk:'#2f6b2b',ol:'#1b4424'};
-        if(kind==='grass'){const pv=(((gx>>1)*31+(gy>>1)*57)>>>0)%4;ctx.fillStyle=['#5fa83c','#63ac40','#59a238','#5fa83c'][pv];ctx.fillRect(x,y,32,32);for(let i=0;i<3;i++){const h=hx2(i+7),tx=x+2+(h%27),ty=y+5+((h>>>8)%25);ctx.fillStyle='#2f6b2b';ctx.fillRect(tx,ty,1,2);ctx.fillRect(tx+2,ty,1,2);ctx.fillStyle='#7fc645';ctx.fillRect(tx+1,ty-1,1,1);}}
+        if(kind==='grass'){const pv=(((gx>>2)*31+(gy>>2)*57)>>>0)%4;ctx.fillStyle=['#5fa83c','#62a840','#5da53b','#5fa83c'][pv];ctx.fillRect(x,y,32,32);for(let i=0;i<3;i++){const h=hx2(i+7),tx=x+2+(h%27),ty=y+5+((h>>>8)%25);ctx.fillStyle='#2f6b2b';ctx.fillRect(tx,ty,1,2);ctx.fillRect(tx+2,ty,1,2);ctx.fillStyle='#7fc645';ctx.fillRect(tx+1,ty-1,1,1);}} // v15: patch blocks 2x2 -> 4x4 tiles and tone spread narrowed (v14: rectangular light/dark patches read as tiles)
         else if(kind==='stone'||kind==='path'){this.pavers6(ctx,x,y,32,32);}
         else if(kind==='water'){ctx.fillStyle='#3b6fb0';ctx.fillRect(x,y,32,4);ctx.fillStyle='#4f8fd0';ctx.fillRect(x,y+4,32,28);{const h=hx2(21);ctx.fillStyle='#a9c8ec';ctx.fillRect(x+3+(h%20),y+8+((h>>>8)%18),5,1);}}
         else if(kind==='fountain'){this.pavers6(ctx,x,y,32,32);}
@@ -1264,14 +1316,17 @@
           for(let i=0;i<2;i++){const h=hx2(i+220);ctx.fillStyle='#417f2d';ctx.fillRect(x+3+(h%18),y+4+((h>>>8)%20),10,6);}
           {const h=hx2(77);ctx.fillStyle='#579e3c';ctx.fillRect(x+6+(h%14),y+10+((h>>>8)%12),8,4);}
           const fc7=['#f28bb4','#ef7fae','#f7a8c4'];
-          const cluster=(ccx,ccy,h0)=>{this.v4Ellipse(ctx,ccx,ccy,8,5,'#2f6626');this.v4Ellipse(ctx,ccx,ccy-1,7,4,'#3c7529');
+          const cluster=(ccx,ccy,h0,cs=1)=>{this.v4Ellipse(ctx,ccx,ccy,Math.round(8*cs),Math.round(5*cs),'#2f6626');this.v4Ellipse(ctx,ccx,ccy-1,Math.round(7*cs),Math.round(4*cs),'#3c7529');
             const offs=[[-4,-2],[0,-3],[4,-2],[-4,2],[0,1],[4,2]];
-            for(let q=0;q<6;q++){const h=hx2(h0+q*13),fx=ccx+offs[q][0]-1,fy=ccy+offs[q][1]-1;
+            for(let q=0;q<6;q++){const h=hx2(h0+q*13),fx=ccx+Math.round(offs[q][0]*cs)-1,fy=ccy+Math.round(offs[q][1]*cs)-1;
               ctx.fillStyle=fc7[h%3];ctx.fillRect(fx,fy,3,3);ctx.fillStyle='#fff3b0';ctx.fillRect(fx+1,fy+1,1,1);}
             for(let q=0;q<2;q++){const h=hx2(h0+q*29+7),fx=ccx-6+(h%11),fy=ccy-3+((h>>>8)%7);
               ctx.fillStyle=fc7[h%3];ctx.fillRect(fx,fy,2,2);}};
-          const spots=[[8,9],[24,8],[9,24],[24,23]];
-          for(let bn=0;bn<4;bn++){const hb=hx2(bn*17+500);if(bn===3&&hb%3===0)continue;cluster(x+spots[bn][0]+((hb%5)-2),y+spots[bn][1]+(((hb>>>8)%5)-2),bn*31+600);}
+          // v15: cluster placement is hash-scattered over the whole tile (v14 Antigravity: the fixed
+          // 2x2 spot grid made every bed the same stamped pattern). 3-5 clusters per tile, centres
+          // anywhere in 9..23, radius varies per cluster. Density per tile is unchanged on average.
+          const nCl=3+(hx2(999)%3);
+          for(let bn=0;bn<nCl;bn++){const hb=hx2(bn*17+500);cluster(x+9+(hb%15),y+9+((hb>>>8)%15),bn*31+600,.85+((hb>>>4)%4)*.1);}
           const edge=(dx,dy)=>this.tiles[gy+dy]?.[gx+dx]!=='flowerbed'&&this.tiles[gy+dy]?.[gx+dx]!=='hedge';
           if(edge(0,-1)){ctx.fillStyle='#e8d9c7';ctx.fillRect(x,y,32,1);ctx.fillStyle='#bca893';ctx.fillRect(x,y+1,32,1);ctx.fillStyle='#7d6b5d';ctx.fillRect(x,y+2,32,1);}
           if(edge(0,1)){ctx.fillStyle='#bca893';ctx.fillRect(x,y+29,32,2);ctx.fillStyle='#7d6b5d';ctx.fillRect(x,y+31,32,1);}
