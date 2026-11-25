@@ -261,16 +261,24 @@
   function head(g,id,dir){
     const c=CH[id]||CH.yuuki, style=c.hair, side=dir==='left'||dir==='right';
     const pony = id==='elena'; // v11: Elena's long hair becomes a side ponytail + shawl so she stops sharing Milia's silhouette
-    // v12 braid: alternating diagonal weave (the old straight rungs read as an "H" pattern from behind)
-    const braidCol=(x0)=>{ for(let y=22;y<=35;y+=3){ const off=((y-22)/3)%2?1:0; rect(g,x0+off,y,x0+2+off,y+1,'h'); rect(g,x0+1-off,y+2,x0+3-off,y+2,'H'); } rect(g,x0,36,x0+3,37,'P'); };
+    // v14 front braid: a thick rope hanging over Milia's left shoulder, OUTSIDE the hair panel and
+    // the robe (x2..5), so it changes the silhouette itself — v12/v13 kept the braid printed ON a
+    // panel and both reviews still read it as surface pattern. Weave units slide alternately,
+    // ending in the red tie and a tuft (CHARACTERS.md: the side braid is her signature).
+    const braidFront=(x0)=>{ for(let s=0;s<5;s++){ const y0=21+s*3, d=s%2?1:0;
+        rect(g,x0+d,y0,x0+d+3,y0+2,'H'); put(g,x0+d,y0,'h'); put(g,x0+d+1,y0+1,'h'); put(g,x0+d+3,y0+2,'h'); }
+      rect(g,x0,36,x0+3,37,'P'); put(g,x0+1,38,'H'); put(g,x0+2,38,'H'); put(g,x0+1,39,'h'); };
     // v13 back braid: a woven column ON the back panel (the old braid sat on the side panel's edge and
     // read as a ladder-pattern board). A dark shadow gap separates it from the panel; each 3-row unit
     // slides a 3px band left/right alternately (over-under weave), darker than the panel so it reads
     // as a distinct rope, ending in the red tie and a hair tuft.
+    // v14: called at x0=21 so the rope straddles the centre panel's right edge, and weave bumps at
+    // x0+6 poke 1px past the side panel (x26) — the braid finally contributes to the back silhouette.
     const braidBack=(x0)=>{ for(let y=21;y<=35;y++) put(g,x0-1,y,'q');
       for(let s=0;s<5;s++){ const y0=21+s*3, d=s%2?1:-1;
         for(let r=0;r<3;r++){ const xx=x0+(d>0?r:2-r), main=r===1?'H':'h', edge=r===1?'h':'H';
           put(g,xx,y0+r,main); put(g,xx+1,y0+r,main); put(g,xx+2,y0+r,edge); put(g,xx+3,y0+r,'h'); } }
+      for(const by of [23,26,29,32]) put(g,x0+6,by,'h');
       rect(g,x0,36,x0+4,37,'P'); put(g,x0+1,38,'H'); put(g,x0+2,38,'H'); put(g,x0+3,38,'h'); };
     if(side){
       // profile head facing left (head rows 0..20)
@@ -280,8 +288,13 @@
       put(g,11,17,'M'); put(g,12,17,'M'); put(g,10,15,'C');
       if(style==='slick'){ rect(g,13,2,22,4,'h'); rect(g,20,3,24,10,'h'); rect(g,21,4,23,9,'H'); put(g,14,1,'L'); put(g,17,1,'L'); rect(g,11,8,14,8,'H'); }
       if(style==='curly'){ for(const bx of [11,15,19,22]){ put(g,bx,0,'H'); put(g,bx+1,0,'H'); put(g,bx,1,'h'); } rect(g,21,3,25,11,'H'); rect(g,22,4,24,10,'h'); put(g,13,2,'L'); put(g,18,2,'L'); }
-      if(style==='long'&&!pony){ rect(g,19,3,25,38,'H'); rect(g,20,4,24,36,'h'); rect(g,21,5,22,34,'H'); if(c.ribbon){ rect(g,19,0,24,2,'P'); put(g,25,1,'P'); } if(c.braid){ for(let y=22;y<=35;y+=3){ const off=((y-22)/3)%2?1:0; rect(g,21+off,y,24+off,y+1,'H'); rect(g,22-off,y+2,24-off,y+2,'h'); } rect(g,21,36,25,37,'P'); } }
-      if(pony){ rect(g,21,8,26,30,'H'); rect(g,22,10,25,28,'h'); rect(g,21,7,25,8,'A'); put(g,21,4,'A'); put(g,22,4,'A'); rect(g,19,3,24,20,'H'); rect(g,20,4,23,18,'h'); }
+      if(style==='long'&&!pony){ rect(g,19,3,25,38,'H'); rect(g,20,4,24,36,'h'); rect(g,21,5,22,34,'H'); if(c.ribbon){ rect(g,19,0,24,2,'P'); put(g,25,1,'P'); put(g,25,2,'P'); } if(c.braid){ for(let y=22;y<=35;y+=3){ const off=((y-22)/3)%2?1:0; rect(g,21+off,y,24+off,y+1,'H'); rect(g,22-off,y+2,24-off,y+2,'h'); } rect(g,21,36,25,37,'P'); }
+        // v14: bumpy back edge + backward flare at the hem (side silhouette: Milia's hair mass ends in bumps and a flick, Elena's in a smooth tapered tail)
+        for(const by of [24,27,30,33]) put(g,26,by,'h'); put(g,26,35,'H'); put(g,26,36,'H'); put(g,26,37,'h'); put(g,25,39,'H'); put(g,24,39,'h'); }
+      if(pony){ // v14: tail swung further back, thickened, tapered tip (was a plain 6-wide slab behind the head)
+        rect(g,21,7,25,8,'A'); put(g,21,4,'A'); put(g,22,4,'A');
+        rect(g,22,9,28,16,'H'); rect(g,23,17,28,26,'H'); rect(g,24,19,27,24,'h'); rect(g,24,27,27,32,'H'); put(g,25,33,'H'); put(g,26,33,'h');
+        rect(g,19,3,24,20,'H'); rect(g,20,4,23,18,'h'); }
       if(style==='beard'){ rect(g,13,0,21,1,'L'); rect(g,20,3,24,11,'H'); rect(g,10,15,17,21,'H'); rect(g,11,16,16,20,'L'); rect(g,12,21,15,22,'h'); put(g,11,17,'M'); }
       if(c.glasses){ rect(g,10,11,15,11,'G'); rect(g,10,14,15,14,'G'); put(g,10,12,'G'); put(g,10,13,'G'); put(g,15,12,'G'); put(g,15,13,'G'); rect(g,15,11,21,11,'G'); }
       rect(g,13,20,18,21,'S'); // neck
@@ -291,14 +304,22 @@
       rect(g,10,0,21,1,'H'); rect(g,9,2,22,19,'H'); rect(g,8,4,23,14,'H'); rect(g,10,19,21,20,'h');
       if(style==='slick'){ rect(g,11,3,13,15,'h'); rect(g,18,3,20,15,'h'); put(g,15,2,'L'); put(g,16,2,'L'); for(let x=12;x<=19;x+=2) put(g,x,16,'h'); }
       if(style==='curly'){ for(const bx of [9,13,17,20]){ put(g,bx,0,'H'); put(g,bx+1,0,'H'); put(g,bx,1,'h'); } for(let i=0;i<7;i++)put(g,10+i*2,6+(i%3),'L'); put(g,10,20,'H'); put(g,15,21,'H'); put(g,20,20,'H'); }
-      if(style==='long'&&!pony){ rect(g,5,5,8,40,'H'); rect(g,23,5,26,40,'H'); rect(g,6,6,7,38,'h'); rect(g,24,6,25,38,'h'); rect(g,9,16,22,38,'H'); rect(g,11,18,12,36,'h'); rect(g,19,18,20,36,'h');
+      if(style==='long'&&!pony){ rect(g,5,5,8,40,'H'); rect(g,23,5,26,39,'H'); rect(g,6,6,7,38,'h'); rect(g,24,6,25,37,'h'); rect(g,9,16,22,38,'H'); rect(g,11,18,12,36,'h'); rect(g,19,18,20,36,'h');
         // v12 back hair: clump steps across the centre panel (stepped, not straight lines) + tapered tips (was a flat slab with an H pattern)
         for(let x=10;x<=21;x++) put(g,x,24+(x<16?0:1),'h');
         for(let x=10;x<=21;x++) put(g,x,31+(x<14?1:0),'h');
-        put(g,5,39,'.'); put(g,5,40,'.'); put(g,26,39,'.'); put(g,26,40,'.'); put(g,8,40,'.'); put(g,23,40,'.');
+        put(g,5,39,'.'); put(g,5,40,'.'); put(g,8,40,'.'); put(g,23,40,'.');
         rect(g,13,39,18,39,'H'); put(g,15,40,'H'); put(g,16,40,'H');
-        put(g,6,12,'L'); put(g,24,16,'L'); if(c.ribbon){ rect(g,18,0,25,2,'P'); put(g,26,1,'P'); } if(c.braid){ braidBack(17); } }
-      if(pony){ rect(g,9,16,22,26,'H'); rect(g,20,8,24,34,'H'); rect(g,21,10,23,32,'h'); rect(g,20,7,24,8,'A'); rect(g,6,5,8,24,'H'); put(g,22,3,'A'); put(g,23,3,'A'); }
+        // v14: flared wavy tips, left panel 1 row longer than the right (asymmetric hem — Elena's back panel is short and straight-cut)
+        put(g,4,38,'H'); put(g,4,39,'H'); put(g,5,41,'H'); put(g,6,41,'H'); put(g,7,41,'h'); put(g,26,40,'H'); put(g,25,40,'h');
+        put(g,6,12,'L'); put(g,24,16,'L'); if(c.ribbon){ rect(g,18,0,25,2,'P'); put(g,26,1,'P'); put(g,26,2,'P'); } if(c.braid){ braidBack(21); } }
+      if(pony){ rect(g,9,16,22,23,'H'); rect(g,11,19,12,22,'h'); rect(g,19,19,20,22,'h'); // v14: back panel ends at the shoulders (row 23; Milia's reaches 40) with a straight hem
+        rect(g,6,5,8,20,'H'); rect(g,7,6,7,18,'h');
+        // v14 ponytail: a separate tail right of the panel, joined only at the gold band — the x23
+        // notch stays empty below the tie so the tail reads as its own mass in silhouette too
+        rect(g,20,7,25,8,'A'); rect(g,21,9,26,11,'H');
+        rect(g,24,12,28,23,'H'); rect(g,25,13,27,21,'h'); rect(g,24,24,27,31,'H'); put(g,25,32,'H'); put(g,26,32,'h');
+        put(g,22,3,'A'); put(g,23,3,'A'); }
       if(style==='beard'){ // v13: was a solid 'L' band + skin patch = an unnatural white stripe across the back of the head; now the hair mass stays 'H' with only scattered light tufts
         put(g,12,2,'L'); put(g,13,2,'L'); put(g,17,3,'L'); put(g,18,2,'L'); put(g,12,5,'h'); put(g,15,5,'h'); put(g,18,5,'h'); rect(g,9,6,10,15,'H'); rect(g,21,6,22,15,'H'); }
       rect(g,13,20,18,21,'h');
@@ -322,15 +343,20 @@
     }
     if(style==='long'&&!pony){
       rect(g,10,0,21,1,'H'); rect(g,9,2,22,6,'H'); rect(g,11,3,20,4,'L');
-      rect(g,5,5,8,40,'H'); rect(g,23,5,26,40,'H'); rect(g,6,6,7,38,'h'); rect(g,24,6,25,38,'h');
+      rect(g,5,5,8,40,'H'); rect(g,23,5,26,39,'H'); rect(g,6,6,7,38,'h'); rect(g,24,6,25,37,'h');
       put(g,6,12,'L'); put(g,24,16,'L'); rect(g,9,5,9,12,'H'); rect(g,22,5,22,12,'H');
-      if(c.ribbon){ rect(g,18,0,25,2,'P'); put(g,26,1,'P'); put(g,17,1,'P'); rect(g,20,3,23,3,'P'); }
-      if(c.braid){ braidCol(5); }
+      // v14: flared wavy tips (same hem as the back view) — the panels step outward and end at
+      // different lengths, where Elena's front is a short bob + a side tail
+      put(g,4,38,'H'); put(g,4,39,'H'); put(g,5,41,'H'); put(g,6,41,'H'); put(g,7,41,'h'); put(g,26,40,'H'); put(g,25,40,'h');
+      if(c.ribbon){ rect(g,18,0,25,2,'P'); put(g,26,1,'P'); put(g,17,1,'P'); rect(g,20,3,23,3,'P'); put(g,26,2,'P'); put(g,26,3,'P'); put(g,17,2,'P'); }
+      if(c.braid){ braidFront(2); }
     }
     if(pony){
       rect(g,10,0,21,1,'H'); rect(g,9,2,22,6,'H'); rect(g,11,3,20,4,'L');
-      rect(g,6,5,9,28,'H'); rect(g,7,6,8,26,'h'); // shorter back panel on her right
-      rect(g,24,8,27,30,'H'); rect(g,25,10,26,28,'h'); rect(g,24,7,27,8,'A'); // ponytail with gold band on her left
+      rect(g,6,5,9,24,'H'); rect(g,7,6,8,22,'h'); put(g,9,25,'H'); put(g,8,25,'h'); // v14: shoulder-length bob on her right (was down to 28)
+      // v14 ponytail: thicker, swung outward with an empty notch (x23) between tail and head, tapered tip
+      rect(g,23,7,28,8,'A');
+      rect(g,24,9,28,14,'H'); rect(g,25,15,29,24,'H'); rect(g,25,16,28,22,'h'); rect(g,25,25,28,31,'H'); put(g,26,32,'H'); put(g,27,32,'h');
       rect(g,22,5,22,12,'H'); put(g,21,3,'A'); put(g,22,3,'A'); put(g,22,4,'A'); // hairpin
     }
     if(style==='beard'){
@@ -660,7 +686,14 @@
     onTileEntered(old,pos){const m=this.maps[this.mapId],exit=m.exits.find(e=>e.x===pos.x&&e.y===pos.y);if(exit){this.setMap(exit.to,exit.arrival.x,exit.arrival.y);return;}if(this.mapId==='forest'&&!this.battle&&Math.random()<.14){this.battle=true;MahouBattle.start(this,'forest');return;}if(this.tiles[pos.y]?.[pos.x]==='training'&&this.tiles[old.y]?.[old.x]!=='training'&&!this.battle){this.battle=true;this.showConfirm('訓練バトル','魔法生物との訓練バトルをはじめますか？',()=>MahouBattle.start(this),()=>{this.battle=false;});}},
     move(dir){const d={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[dir];if(!d)return;const old=this.pos,n={x:old.x+d[0],y:old.y+d[1]},exit=this.maps[this.mapId].exits.find(e=>e.x===n.x&&e.y===n.y);if((!exit&&!this.walkable(n.x,n.y))||this.maps[this.mapId].npcs.some(v=>v.x===n.x&&v.y===n.y))return;this.pos=n;this.facing=dir;this.walkFrame^=1;this.onTileEntered(old,n);this.draw();},
     updateFrameLock(){this.frameLock=null;},
-    snapCamera(){if(!this.maps[this.mapId])return;if(this.frameLock){this.camera.x=this.frameLock.x;this.camera.y=this.frameLock.y;return;}const m=this.maps[this.mapId],pw=m.w*TILE,ph=m.h*TILE;this.camera.x=pw<=viewW()?(pw-viewW())/2:Math.max(0,Math.min(pw-viewW(),this._px+16-viewW()/2));this.camera.y=ph<=viewH()?(ph-viewH())/2:Math.max(0,Math.min(ph-viewH(),this._py+16-viewH()/2));},
+    camTargetY(ph,vh){const ty=ph<=vh?(ph-vh)/2:Math.max(0,Math.min(ph-vh,this._py+16-vh/2));
+      // v14 framing: on the castle map's north strip (the arrival / front-plaza zone, pos.y<=12) the
+      // camera pins to the map top so the whole roof — ridge, slope, clock spire, great door — stays
+      // in frame with the player. v13 reviews: at spawn (32,7) the centred camera sat at y=27 and cut
+      // the ridge line off, so the top-down roof never reached the player. South of the zone the
+      // normal follow resumes (draw() lerps, so the release reads as a gentle pan).
+      if(this.mapId==='castle'&&this.pos.y<=12)return Math.min(ty,0);return ty;},
+    snapCamera(){if(!this.maps[this.mapId])return;if(this.frameLock){this.camera.x=this.frameLock.x;this.camera.y=this.frameLock.y;return;}const m=this.maps[this.mapId],pw=m.w*TILE,ph=m.h*TILE;this.camera.x=pw<=viewW()?(pw-viewW())/2:Math.max(0,Math.min(pw-viewW(),this._px+16-viewW()/2));this.camera.y=this.camTargetY(ph,viewH());},
     interact() {
       if (!$('dialogue').classList.contains('hidden') || !$('menu').classList.contains('hidden') || !$('battle').classList.contains('hidden') || !$('confirm-dialog').classList.contains('hidden')) return;
       const m=this.maps[this.mapId], near=p=>p&&Math.abs(p.x-this.pos.x)+Math.abs(p.y-this.pos.y)<=1;
@@ -974,6 +1007,12 @@
       // v9: cone steps lose their per-step gloss/bottom lines; staggered vertical seam ticks break the horizontal striping
       const cone=(cx,baseY,steps,w0,narrow,sh)=>{for(let i=0;i<steps;i++){const w=w0-i*narrow,sx=Math.round(cx-w/2),sy=baseY-i*sh;R(sx,sy,w,sh,SL.md);R(sx,sy,Math.round(w*.44),sh,SL.lt);R(sx+Math.round(w*.72),sy,w-Math.round(w*.72),sh,SL.dk);if(i%3===2)R(sx,sy+sh-1,w,1,SL.ol);for(let vx=sx+5+((i*13)%8);vx<sx+w-3;vx+=13+((i*7)%5))R(vx,sy+1,1,Math.max(1,sh-2),SL.dk);}};
       // ---------- wavy zigzag roof: slate field + 8 gable segments, peaks rise toward the center ----------
+      // v14: north slope behind the ridge. The raw wall-tile bricks used to show above the wave
+      // silhouette and read as a second wall standing behind the roof (both v13 reviews). A darker
+      // slate field fills y0..62 first, so the roof reads as one mass seen from above — this area is
+      // now on screen permanently with the v14 pinned framing, so it had to be fixed with it.
+      const SLN={hl:'#5d7fb5',lt:'#46639c',md:'#354e80',dk:'#2a3f6b',ol:'#1c2c4e'};
+      slates(512,0,3072,62,SLN);
       const peaks=[[704,44],[1088,34],[1472,24],[1856,12],[2240,12],[2624,24],[3008,34],[3392,44]];
       // v13 top-down conversion: the slate field is extended from y106 to y140 so the roof reads as a
       // deep sloped plane seen from above, not a band on top of an elevation. The wave silhouette stays
@@ -993,8 +1032,21 @@
       R(512,144,3072,3,ST.hl);R(512,147,3072,4,ST.lt);R(512,151,3072,2,ST.dk);
       bricks(512,153,3072,53,BR);
       R(512,153,3072,6,'rgba(24,16,36,.32)'); // v13: deeper eave shadow so the roof reads as overhanging the wall
-      R(508,206,3080,3,ST.hl);R(508,209,3080,6,ST.lt);R(508,215,3080,6,ST.md);R(508,221,3080,5,ST.dk);R(508,226,3080,4,ST.ol);
-      R(512,230,3072,9,'#356e2a');for(let gx=512;gx<3584;gx+=4)R(gx,239,2,4,'#356e2a');
+      // v14: the plinth becomes a terrace. v13's base read as a SECOND front wall (Claude): the 24px
+      // ledge + the grass fringe + ~77px of exposed wall-tile brick below it (rows 3-4) stacked into a
+      // brick band taller than the wall itself. Now: a compressed trim (206..218), a lit horizontal
+      // slab top seen from above (218..246, the tendan), a front face HALVED to 24px of darker brick
+      // (246..270), and a ground apron (270..320) that covers the tile brick with grass / plaza stone.
+      // The old full-width grass fringe is GONE: it painted straight across the great door and the
+      // pillar bases (both v13 reviews flagged the stray horizontal band crossing the porch).
+      R(508,206,3080,3,ST.hl);R(508,209,3080,5,ST.lt);R(508,214,3080,4,ST.md);
+      R(512,218,3072,2,ST.hl);R(512,220,3072,22,ST.lt);R(512,242,3072,4,ST.md); // slab top (tendan)
+      for(let sx=536;sx<3584;sx+=46)R(sx,220,2,22,ST.md); // slab seams
+      bricks(512,246,3072,24,BR2); // terrace front face
+      R(512,246,3072,6,'rgba(24,16,36,.30)'); // shadow under the slab lip
+      for(let gx=8;gx<56;gx++){const bx=gx*64,pv=(((gx>>1)*31+57)>>>0)%4; // ground apron, tile by tile
+        if(gx>=24&&gx<40){R(bx,270,64,50,'#bca893');R(bx,286,64,2,'#a5906f');R(bx,302,64,2,'#a5906f');R(bx+((gx*13)%29),270,2,50,'#a5906f');} // plaza stone beside the steps
+        else{R(bx,270,64,50,['#5fa83c','#63ac40','#59a238','#5fa83c'][pv]);for(let q=0;q<3;q++){const hh=hash(gx*3+q,271);R(bx+2+(hh%27)*2,274+((hh>>>8)%42),2,3,'#2f6b2b');R(bx+3+(hh%27)*2,273+((hh>>>8)%42),1,1,'#7fc645');}}} // grass matching the tile grammar
       // ---------- windows: v13 squashed for the top-down wall (64 -> 46 bake px tall, arch top y160, sill y196) ----------
       for(let gx=10;gx<=53;gx+=3){if(gx>=29&&gx<=34)continue;const fx=(gx*32+10)*2,h=hash(gx,77);
         R(fx-28,160,18,36,SL.md);R(fx-28,160,18,2,SL.lt);for(const sy of [172,184])R(fx-28,sy,18,2,SL.dk);
@@ -1014,7 +1066,9 @@
       // ---------- ivy clusters at the wall base ----------
       for(const [vx,vy,vr] of [[790,198,20],[1060,204,16],[1320,200,18],[2380,200,18],[2680,204,16],[3320,198,20],[620,204,15],[3480,206,15]])this.leafCluster(b,vx,vy,vr,vr*.72,hash(vx,vy));
       // ---------- v7 porch wave roof: 3 gables over the arches, peaks inside the start-view band ----------
-      const SL2={hl:'#b8d2f2',lt:'#8fb0dd',md:'#7398cf',dk:'#5174aa',ol:'#3a5389'};
+      // v14: SL2 shifted lighter and toward violet (was one step lighter than the main roof — both
+      // v13 reviews read the porch roof as part of the main roof). Hue + lightness now separate them.
+      const SL2={hl:'#ccd6f8',lt:'#a3b1ec',md:'#8494dc',dk:'#5f6fb8',ol:'#424e8c'};
       // v13: porch roof plane deepened (valley 68->58, eave 86->104) so it reads as a slope seen from
       // above like the main roof; the slate course pitch stays identical to the main roof (12 bake px)
       const PR={x0:1696,x1:2400,valley:58,eave:104};
@@ -1032,6 +1086,9 @@
       for(const pcx of [1813,2048,2282])R(pcx-118,PR.valley,236,4,'rgba(24,16,36,.30)');
       // v9: stone trim following the zigzag eave (stepped per 4px column), with dark end caps — the target's eave is a folded ribbon, not a straight board
       for(let x=PR.x0-4;x<PR.x1+4;x+=4){const bot=eaveAt(Math.max(PR.x0,Math.min(PR.x1,x)));R(x,bot,4,1,ST.hl);R(x,bot+1,4,2,ST.lt);R(x,bot+3,4,1,ST.dk);}
+      // v14: the shadow the porch roof casts onto the surface behind it, following the zigzag eave —
+      // with the palette split this is what finally reads as "a separate roof overlapping the main one"
+      for(let x=PR.x0-4;x<PR.x1+4;x+=4){const bot=eaveAt(Math.max(PR.x0,Math.min(PR.x1,x)));R(x,bot+4,4,6,'rgba(20,14,32,.42)');}
       R(PR.x0-4,eaveAt(PR.x0)-2,2,6,SL2.ol);R(PR.x1+2,eaveAt(PR.x1)-2,2,6,SL2.ol);
       // ---------- clock spire: sits on the porch roof, face set into its base ----------
       cone(2048,42,9,250,16,5);
@@ -1121,7 +1178,7 @@
       R(1702,315,712,5,'rgba(28,42,26,.30)'); // v11: baked ground shadow the steps cast onto the plaza
       b.restore();
     },
-    buildCastleShadows(){const c=document.createElement('canvas');c.width=this.mapBase.width;c.height=this.mapBase.height;const x=c.getContext('2d');x.setTransform(SS,0,0,SS,0,0);x.fillStyle='#33503e';const cast=(a,b,y,dx,dy)=>{x.beginPath();x.moveTo(a,y);x.lineTo(b,y);x.lineTo(b+dx,y+dy);x.lineTo(a+dx,y+dy);x.closePath();x.fill();};cast(256,1792,140,48,24);cast(724,812,140,38,18);cast(1236,1324,140,38,18);cast(864,1184,158,30,16);x.fillRect(252,115,598,4);x.fillRect(1200,115,596,4);x.fillRect(850,156,360,4);for(const px of [872,966,1060,1154])cast(px,px+22,158,16,13);for(const [gx,gy] of (this.bigTrees||[])){x.beginPath();x.ellipse(gx*32+16+10,gy*32+30,30,9,0,0,Math.PI*2);x.fill();}for(const [gx,gy] of this.TREES){x.beginPath();x.ellipse(gx*32+16+25,gy*32+16+16,20,8,0,0,Math.PI*2);x.fill();}for(let gy=0;gy<this.mapH();gy++)for(let gx=0;gx<this.mapW();gx++){const k=this.tiles[gy][gx];if(k==='hedge'&&this.tiles[gy+1]?.[gx]!=='hedge')x.fillRect(gx*32+2,gy*32+30,31,7);else if(k==='bench')x.fillRect(gx*32+4,gy*32+23,28,6);else if(k==='plant'){x.beginPath();x.ellipse(gx*32+19,gy*32+29,10,4,0,0,Math.PI*2);x.fill();}}x.beginPath();x.ellipse(1024+22,452,11,4,.55,0,Math.PI*2);x.fill();this.shadowLayer=c;},
+    buildCastleShadows(){const c=document.createElement('canvas');c.width=this.mapBase.width;c.height=this.mapBase.height;const x=c.getContext('2d');x.setTransform(SS,0,0,SS,0,0);x.fillStyle='#33503e';const cast=(a,b,y,dx,dy)=>{x.beginPath();x.moveTo(a,y);x.lineTo(b,y);x.lineTo(b+dx,y+dy);x.lineTo(a+dx,y+dy);x.closePath();x.fill();};cast(256,1792,140,48,24);cast(724,812,140,38,18);cast(1236,1324,140,38,18);cast(864,1184,158,30,16);x.fillRect(252,136,598,4);x.fillRect(1200,136,596,4);x.fillRect(850,156,360,4); /* v14: plinth contact shadow moved 115->136 (terrace face now ends at bake 270 = logical 135) */ for(const px of [872,966,1060,1154])cast(px,px+22,158,16,13);for(const [gx,gy] of (this.bigTrees||[])){x.beginPath();x.ellipse(gx*32+16+10,gy*32+30,30,9,0,0,Math.PI*2);x.fill();}for(const [gx,gy] of this.TREES){x.beginPath();x.ellipse(gx*32+16+25,gy*32+16+16,20,8,0,0,Math.PI*2);x.fill();}for(let gy=0;gy<this.mapH();gy++)for(let gx=0;gx<this.mapW();gx++){const k=this.tiles[gy][gx];if(k==='hedge'&&this.tiles[gy+1]?.[gx]!=='hedge')x.fillRect(gx*32+2,gy*32+30,31,7);else if(k==='bench')x.fillRect(gx*32+4,gy*32+23,28,6);else if(k==='plant'){x.beginPath();x.ellipse(gx*32+19,gy*32+29,10,4,0,0,Math.PI*2);x.fill();}}x.beginPath();x.ellipse(1024+22,452,11,4,.55,0,Math.PI*2);x.fill();this.shadowLayer=c;},
     drawEdges(b){const stone=new Set(['stone','path']);for(let y=0;y<this.mapH();y++)for(let x=0;x<this.mapW();x++){const k=this.tiles[y][x],px=x*32,py=y*32;if(stone.has(k)){for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]])if(this.tiles[y+dy]?.[x+dx]==='grass'){b.fillStyle='#7d6b5d';b.fillRect(px+(dx===1?31:dx===-1?0:0),py+(dy===1?31:0),32,1);}} /* v11: grass-blade spill onto stone removed — it read as stray green dots scattered over the paths (both v10 reviews) */if(k==='water'&&y>0&&this.tiles[y-1][x]!=='water'){b.fillStyle='#7d6b5d';b.fillRect(px,py,32,6);b.fillStyle='#cfefff';b.fillRect(px,py,32,1);}}},
     applyBlur(){ if(this.fg) this.fg.closest('#world-frame').classList.toggle('no-blur',!this.settings.blur); },
     drawTitleArt(){const c=$('title-art'),x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,540);g.addColorStop(0,'#101a36');g.addColorStop(.62,'#9a5862');g.addColorStop(1,'#f2a566');x.fillStyle=g;x.fillRect(0,0,960,540);for(let i=0;i<70;i++){x.fillStyle=`rgba(255,240,200,${.3+(i%4)*.1})`;x.fillRect((i*137)%960,(i*71)%260,2,2);}x.fillStyle='#f9dda0';x.beginPath();x.arc(760,115,38,0,7);x.fill();x.fillStyle='#20243a';x.fillRect(0,365,960,175);for(const [bx,by,bw,bh] of [[120,250,170,180],[320,210,150,220],[500,270,180,160],[690,190,170,230]]){x.fillRect(bx,by,bw,bh);x.fillRect(bx+35,by-60,bw-70,60);x.beginPath();x.moveTo(bx+20,by-60);x.lineTo(bx+bw/2,by-120);x.lineTo(bx+bw-20,by-60);x.fill();for(let wx=bx+35;wx<bx+bw-15;wx+=42){x.fillStyle='#ffc979';x.fillRect(wx,by+35,12,20);}x.fillStyle='#20243a';}x.fillStyle='#11182b';x.fillRect(0,480,960,60);},
@@ -1129,10 +1186,10 @@
     draw() {
       if(!this.ctx||!this.mapBase)return;
       // v7: while the player is in the castle's north strip, fade the top HUD so the roof wave and the left tower cone stay readable
-      const peek=this.mapId==='castle'&&this.pos.y<=8;if(peek!==this._peek){this._peek=peek;$('hud').classList.toggle('peek',peek);$('location-chip').classList.toggle('peek',peek);}
+      const peek=this.mapId==='castle'&&this.pos.y<=12;if(peek!==this._peek){this._peek=peek;$('hud').classList.toggle('peek',peek);$('location-chip').classList.toggle('peek',peek);} // v14: zone widened 8->12 to match the pinned-camera framing strip
       const c=this.ctx,m=this.maps[this.mapId],pw=m.w*TILE,ph=m.h*TILE,vw=viewW(),vh=viewH();
       if(this.frameLock&&(Math.abs(this.pos.x-this.frameLock.px)>=3||Math.abs(this.pos.y-this.frameLock.py)>=3))this.frameLock=null;
-      const tx=this.frameLock?this.frameLock.x:(pw<=vw?(pw-vw)/2:Math.max(0,Math.min(pw-vw,this._px+16-vw/2))),ty=this.frameLock?this.frameLock.y:(ph<=vh?(ph-vh)/2:Math.max(0,Math.min(ph-vh,this._py+16-vh/2)));
+      const tx=this.frameLock?this.frameLock.x:(pw<=vw?(pw-vw)/2:Math.max(0,Math.min(pw-vw,this._px+16-vw/2))),ty=this.frameLock?this.frameLock.y:this.camTargetY(ph,vh);
       if(this.lastFrame){const dt=Math.min(.05,(performance.now()-this.lastDrawTime||0)/1000),k=1-Math.exp(-7*dt);this.camera.x+=(tx-this.camera.x)*k;this.camera.y+=(ty-this.camera.y)*k;}else{this.camera.x=tx;this.camera.y=ty;}
       this.camera.x=Math.round(this.camera.x*ZOOM*this.dpr)/(ZOOM*this.dpr);this.camera.y=Math.round(this.camera.y*ZOOM*this.dpr)/(ZOOM*this.dpr);this.lastDrawTime=performance.now();
       c.setTransform(this.dpr*ZOOM,0,0,this.dpr*ZOOM,0,0);c.imageSmoothingEnabled=false;c.fillStyle='#0d1420';c.fillRect(0,0,vw,vh);
