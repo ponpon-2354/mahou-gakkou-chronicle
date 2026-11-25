@@ -263,6 +263,15 @@
     const pony = id==='elena'; // v11: Elena's long hair becomes a side ponytail + shawl so she stops sharing Milia's silhouette
     // v12 braid: alternating diagonal weave (the old straight rungs read as an "H" pattern from behind)
     const braidCol=(x0)=>{ for(let y=22;y<=35;y+=3){ const off=((y-22)/3)%2?1:0; rect(g,x0+off,y,x0+2+off,y+1,'h'); rect(g,x0+1-off,y+2,x0+3-off,y+2,'H'); } rect(g,x0,36,x0+3,37,'P'); };
+    // v13 back braid: a woven column ON the back panel (the old braid sat on the side panel's edge and
+    // read as a ladder-pattern board). A dark shadow gap separates it from the panel; each 3-row unit
+    // slides a 3px band left/right alternately (over-under weave), darker than the panel so it reads
+    // as a distinct rope, ending in the red tie and a hair tuft.
+    const braidBack=(x0)=>{ for(let y=21;y<=35;y++) put(g,x0-1,y,'q');
+      for(let s=0;s<5;s++){ const y0=21+s*3, d=s%2?1:-1;
+        for(let r=0;r<3;r++){ const xx=x0+(d>0?r:2-r), main=r===1?'H':'h', edge=r===1?'h':'H';
+          put(g,xx,y0+r,main); put(g,xx+1,y0+r,main); put(g,xx+2,y0+r,edge); put(g,xx+3,y0+r,'h'); } }
+      rect(g,x0,36,x0+4,37,'P'); put(g,x0+1,38,'H'); put(g,x0+2,38,'H'); put(g,x0+3,38,'h'); };
     if(side){
       // profile head facing left (head rows 0..20)
       rect(g,12,0,21,1,'H'); rect(g,11,2,23,7,'H'); rect(g,10,4,24,6,'H');
@@ -288,9 +297,10 @@
         for(let x=10;x<=21;x++) put(g,x,31+(x<14?1:0),'h');
         put(g,5,39,'.'); put(g,5,40,'.'); put(g,26,39,'.'); put(g,26,40,'.'); put(g,8,40,'.'); put(g,23,40,'.');
         rect(g,13,39,18,39,'H'); put(g,15,40,'H'); put(g,16,40,'H');
-        put(g,6,12,'L'); put(g,24,16,'L'); if(c.ribbon){ rect(g,18,0,25,2,'P'); put(g,26,1,'P'); } if(c.braid){ braidCol(5); } }
+        put(g,6,12,'L'); put(g,24,16,'L'); if(c.ribbon){ rect(g,18,0,25,2,'P'); put(g,26,1,'P'); } if(c.braid){ braidBack(17); } }
       if(pony){ rect(g,9,16,22,26,'H'); rect(g,20,8,24,34,'H'); rect(g,21,10,23,32,'h'); rect(g,20,7,24,8,'A'); rect(g,6,5,8,24,'H'); put(g,22,3,'A'); put(g,23,3,'A'); }
-      if(style==='beard'){ rect(g,11,2,20,5,'L'); rect(g,12,3,19,4,'S'); rect(g,9,6,10,15,'H'); rect(g,21,6,22,15,'H'); }
+      if(style==='beard'){ // v13: was a solid 'L' band + skin patch = an unnatural white stripe across the back of the head; now the hair mass stays 'H' with only scattered light tufts
+        put(g,12,2,'L'); put(g,13,2,'L'); put(g,17,3,'L'); put(g,18,2,'L'); put(g,12,5,'h'); put(g,15,5,'h'); put(g,18,5,'h'); rect(g,9,6,10,15,'H'); rect(g,21,6,22,15,'H'); }
       rect(g,13,20,18,21,'h');
       return;
     }
@@ -965,47 +975,54 @@
       const cone=(cx,baseY,steps,w0,narrow,sh)=>{for(let i=0;i<steps;i++){const w=w0-i*narrow,sx=Math.round(cx-w/2),sy=baseY-i*sh;R(sx,sy,w,sh,SL.md);R(sx,sy,Math.round(w*.44),sh,SL.lt);R(sx+Math.round(w*.72),sy,w-Math.round(w*.72),sh,SL.dk);if(i%3===2)R(sx,sy+sh-1,w,1,SL.ol);for(let vx=sx+5+((i*13)%8);vx<sx+w-3;vx+=13+((i*7)%5))R(vx,sy+1,1,Math.max(1,sh-2),SL.dk);}};
       // ---------- wavy zigzag roof: slate field + 8 gable segments, peaks rise toward the center ----------
       const peaks=[[704,44],[1088,34],[1472,24],[1856,12],[2240,12],[2624,24],[3008,34],[3392,44]];
-      // stepped slate fields under each gable (tops follow the wave) so no wall shows between segments
-      for(const [cx,py] of peaks)slates(cx-192,py+16,384,106-(py+16),SL);
+      // v13 top-down conversion: the slate field is extended from y106 to y140 so the roof reads as a
+      // deep sloped plane seen from above, not a band on top of an elevation. The wave silhouette stays
+      // (it is Chiba's target-image design); the slope's own band shading (lt->md->dk toward the eave,
+      // already inside slates()) sells the incline. Claude's design call: slope:wall ~1.9:1, not 2.8:1.
+      for(const [cx,py] of peaks)slates(cx-192,py+16,384,140-(py+16),SL);
       for(const [cx,py] of peaks){const halfW=192,valleyY=58;
         for(let y=py;y<valleyY;y+=6){const t=(y-py)/(valleyY-py),hw=Math.round(halfW*t);if(hw<=2)continue;R(cx-hw,y,hw*2,6,SL.md);R(cx-hw,y,Math.round(hw*.62),6,SL.lt);R(cx+Math.round(hw*.55),y,hw-Math.round(hw*.55),6,SL.dk);R(cx-hw,y+5,hw*2,1,SL.dk);}
         R(cx-3,py-2,6,4,SL.lt);}
-      R(512,102,3072,4,SL.ol);
-      // dormers
-      for(const dx of [820,3020]){for(let i=0;i<4;i++){const w=44-i*9,y=64-i*7;R(dx-Math.round(w/2),y,w,7,SL.md);R(dx-Math.round(w/2),y,Math.round(w*.4),7,SL.lt);R(dx-Math.round(w/2),y+6,w,1,SL.dk);}R(dx-13,62,26,38,ST.lt);R(dx-9,66,18,26,'#7ea6d8');R(dx-9,83,18,9,'#5f83b8');R(dx-1,66,2,26,ST.lt);R(dx-17,98,34,4,ST.dk);}
+      R(512,138,3072,4,SL.dk);R(512,142,3072,2,SL.ol); // v13: dark lowest course + eave line at the slope's foot
+      // dormers (v13: moved down onto the deepened slope, bases at y134)
+      for(const dx of [820,3020]){for(let i=0;i<4;i++){const w=44-i*9,y=116-i*7;R(dx-Math.round(w/2),y,w,7,SL.md);R(dx-Math.round(w/2),y,Math.round(w*.4),7,SL.lt);R(dx-Math.round(w/2),y+6,w,1,SL.dk);}R(dx-13,104,26,26,ST.lt);R(dx-9,108,18,18,'#7ea6d8');R(dx-9,120,18,6,'#5f83b8');R(dx-1,108,2,18,ST.lt);R(dx-17,130,34,4,ST.dk);}
       // ---------- cornice, wall, plinth, ground fringe (v11: wall 110->90, roof field bottom 122->106, plinth bottom 264->230;
       // building band 278 (v9) -> 264 (v10) -> 230 bake px = -17% total, inside the instruction's 15-20%) ----------
-      R(512,106,3072,3,ST.hl);R(512,109,3072,5,ST.lt);R(512,114,3072,2,ST.dk);
-      bricks(512,116,3072,90,BR);
-      R(512,116,3072,5,'rgba(24,16,36,.30)'); // v10: hard eave shadow band under the cornice
+      // v13: cornice moves to the slope's new foot (y144) and the wall compresses 90 -> 53 bake px;
+      // the plinth (206..230) and the building band total do not move.
+      R(512,144,3072,3,ST.hl);R(512,147,3072,4,ST.lt);R(512,151,3072,2,ST.dk);
+      bricks(512,153,3072,53,BR);
+      R(512,153,3072,6,'rgba(24,16,36,.32)'); // v13: deeper eave shadow so the roof reads as overhanging the wall
       R(508,206,3080,3,ST.hl);R(508,209,3080,6,ST.lt);R(508,215,3080,6,ST.md);R(508,221,3080,5,ST.dk);R(508,226,3080,4,ST.ol);
       R(512,230,3072,9,'#356e2a');for(let gx=512;gx<3584;gx+=4)R(gx,239,2,4,'#356e2a');
-      // ---------- windows: tall arched, blue shutters, flower boxes ----------
+      // ---------- windows: v13 squashed for the top-down wall (64 -> 46 bake px tall, arch top y160, sill y196) ----------
       for(let gx=10;gx<=53;gx+=3){if(gx>=29&&gx<=34)continue;const fx=(gx*32+10)*2,h=hash(gx,77);
-        R(fx-28,132,18,64,SL.md);R(fx-28,132,18,2,SL.lt);for(const sy of [154,176])R(fx-28,sy,18,2,SL.dk);
-        R(fx+52,132,18,64,SL.md);R(fx+52,132,18,2,SL.lt);for(const sy of [154,176])R(fx+52,sy,18,2,SL.dk);
-        ELT(fx+21,152,27,20,ST.lt);R(fx-6,152,54,46,ST.lt);
-        ELT(fx+21,152,21,15,'#7ea6d8');R(fx,152,42,36,'#7ea6d8');R(fx,188,42,10,'#5f83b8');
-        R(fx+19,132,3,66,ST.lt);R(fx,174,42,3,ST.lt);
-        R(fx-10,198,62,6,ST.md);R(fx-10,204,62,3,BR.dk);
-        if(h%3===0){R(fx,186,42,10,'#6b4423');this.leafCluster(b,fx+10,183,9,6,hash(gx,5));this.leafCluster(b,fx+30,182,10,6,hash(gx,9));for(let q=0;q<4;q++){const hh=hash(gx+q,99);R(fx+4+q*6,179+(hh%3),3,3,q%2?'#f28bb4':'#fff0f5');}}
+        R(fx-28,160,18,36,SL.md);R(fx-28,160,18,2,SL.lt);for(const sy of [172,184])R(fx-28,sy,18,2,SL.dk);
+        R(fx+52,160,18,36,SL.md);R(fx+52,160,18,2,SL.lt);for(const sy of [172,184])R(fx+52,sy,18,2,SL.dk);
+        ELT(fx+21,178,27,18,ST.lt);R(fx-6,178,54,18,ST.lt);
+        ELT(fx+21,178,21,13,'#7ea6d8');R(fx,178,42,18,'#7ea6d8');R(fx,190,42,6,'#5f83b8');
+        R(fx+19,162,3,34,ST.lt);R(fx,186,42,3,ST.lt);
+        R(fx-10,196,62,5,ST.md);R(fx-10,201,62,3,BR.dk);
+        if(h%3===0){R(fx,188,42,10,'#6b4423');this.leafCluster(b,fx+10,185,9,6,hash(gx,5));this.leafCluster(b,fx+30,184,10,6,hash(gx,9));for(let q=0;q<4;q++){const hh=hash(gx+q,99);R(fx+4+q*6,181+(hh%3),3,3,q%2?'#f28bb4':'#fff0f5');}}
       }
       // ---------- side door niches ----------
       for(const nx of [944,2880]){const cx=nx+32;
-        ELT(cx,158,42,24,ST.md);ELT(cx,158,34,18,'#453f4e');R(cx-34,158,68,48,'#554e60');R(cx-40,158,6,54,ST.md);R(cx+34,158,6,54,ST.dk);
-        R(cx-34,192,68,14,'#97836c'); // v12: a hint of lit floor inside the niche (was a flat near-black fill, same "black hole" family as the arches)
-        R(cx-44,206,88,6,ST.lt);R(cx-48,212,96,6,ST.md);R(cx-5,170,10,36,'#332b40');R(cx-5,170,2,36,'#6a6280');
+        ELT(cx,176,42,20,ST.md);ELT(cx,176,34,15,'#453f4e');R(cx-34,176,68,30,'#554e60');R(cx-40,176,6,36,ST.md);R(cx+34,176,6,36,ST.dk);
+        R(cx-34,196,68,10,'#97836c'); // v12: a hint of lit floor inside the niche (was a flat near-black fill, same "black hole" family as the arches)
+        R(cx-44,206,88,6,ST.lt);R(cx-48,212,96,6,ST.md);R(cx-5,184,10,22,'#332b40');R(cx-5,184,2,22,'#6a6280');
       }
       // ---------- ivy clusters at the wall base ----------
       for(const [vx,vy,vr] of [[790,198,20],[1060,204,16],[1320,200,18],[2380,200,18],[2680,204,16],[3320,198,20],[620,204,15],[3480,206,15]])this.leafCluster(b,vx,vy,vr,vr*.72,hash(vx,vy));
       // ---------- v7 porch wave roof: 3 gables over the arches, peaks inside the start-view band ----------
       const SL2={hl:'#b8d2f2',lt:'#8fb0dd',md:'#7398cf',dk:'#5174aa',ol:'#3a5389'};
-      const PR={x0:1696,x1:2400,valley:68,eave:86};
-      for(const [pcx,py] of [[1813,38],[2048,34],[2282,38]]){const halfW=118;
+      // v13: porch roof plane deepened (valley 68->58, eave 86->104) so it reads as a slope seen from
+      // above like the main roof; the slate course pitch stays identical to the main roof (12 bake px)
+      const PR={x0:1696,x1:2400,valley:58,eave:104};
+      for(const [pcx,py] of [[1813,36],[2048,32],[2282,36]]){const halfW=118;
         for(let y=py;y<PR.valley;y+=6){const t=(y-py)/(PR.valley-py),hw=Math.round(halfW*t);if(hw<=2)continue;R(pcx-hw,y,hw*2,6,SL2.md);R(pcx-hw,y,Math.round(hw*.62),6,SL2.lt);R(pcx+Math.round(hw*.55),y,hw-Math.round(hw*.55),6,SL2.dk);R(pcx-hw,y+5,hw*2,1,SL2.dk);for(const so of [-84,-56,-28,0,28,56,84])if(Math.abs(so)<hw-8)R(pcx+so,y,1,6,SL2.ol);R(pcx-hw,y,2,6,ST.hl);R(pcx-hw+2,y,1,6,ST.dk);R(pcx+hw-2,y,2,6,ST.md);R(pcx+hw-3,y,1,6,ST.ol);}
         R(pcx-3,py-3,6,3,ST.lt);R(pcx-1,py-5,2,2,'#ffd94d');}
       // v9: the field's lower edge zigzags with the gables (deepest under each gable centre, rising at the valleys) — clipped slate field
-      const eaveAt=(x)=>{let bot=74;for(const pcx of [1813,2048,2282]){const d=Math.abs(x-pcx);if(d<118)bot=Math.max(bot,86-Math.round(d*12/118));}return bot;};
+      const eaveAt=(x)=>{let bot=78;for(const pcx of [1813,2048,2282]){const d=Math.abs(x-pcx);if(d<118)bot=Math.max(bot,104-Math.round(d*26/118));}return bot;};
       b.save();b.beginPath();b.moveTo(PR.x0,PR.valley);b.lineTo(PR.x1,PR.valley);for(let x=PR.x1;x>=PR.x0;x-=8)b.lineTo(x,eaveAt(x));b.closePath();b.clip();
       slates(PR.x0,PR.valley,PR.x1-PR.x0,PR.eave-PR.valley+2,SL2);
       // v8: vertical seams on the porch roof field at 28px spacing (main roof uses 16px) so the two roofs stop reading as one surface
@@ -1015,7 +1032,7 @@
       for(const pcx of [1813,2048,2282])R(pcx-118,PR.valley,236,4,'rgba(24,16,36,.30)');
       // v9: stone trim following the zigzag eave (stepped per 4px column), with dark end caps — the target's eave is a folded ribbon, not a straight board
       for(let x=PR.x0-4;x<PR.x1+4;x+=4){const bot=eaveAt(Math.max(PR.x0,Math.min(PR.x1,x)));R(x,bot,4,1,ST.hl);R(x,bot+1,4,2,ST.lt);R(x,bot+3,4,1,ST.dk);}
-      R(PR.x0-4,74,2,6,SL2.ol);R(PR.x1+2,74,2,6,SL2.ol);
+      R(PR.x0-4,eaveAt(PR.x0)-2,2,6,SL2.ol);R(PR.x1+2,eaveAt(PR.x1)-2,2,6,SL2.ol);
       // ---------- clock spire: sits on the porch roof, face set into its base ----------
       cone(2048,42,9,250,16,5);
       R(2047,3,2,5,'#c9a24a');R(2045,2,6,3,'#ffd94d');
@@ -1027,30 +1044,33 @@
       const BRramp=[[0,'#4a3d33'],[.10,'#77644e'],[.20,'#9a8468'],[.29,'#cbb693'],[.40,'#b39d7d'],[.60,'#9a8468'],[.80,'#77644e'],[.92,'#4a3d33']];
       const STramp=[[0,'#7d6b5d'],[.14,'#9b8774'],[.26,'#e8d9c7'],[.38,'#d3c0ac'],[.58,'#bca893'],[.78,'#9b8774'],[.92,'#7d6b5d']];
       for(const cxL of [1536,2560]){const tx=cxL-88;
-        // shadow the tower casts on the wall to its right
-        b.save();b.globalAlpha=.28;R(tx+182,116,20,90,'#241a12');b.restore();
-        // ground shadow + elliptical plinth base
-        EL(cxL+8,218,102,8,'rgba(28,42,26,.40)');
-        EL(cxL,206,94,9,'#5d4c3c');
-        // body: 4px vertical strips sampled from the cylinder ramp (light peak at ~32%)
-        for(let sx=tx;sx<tx+176;sx+=4)R(sx,104,4,102,bandAt(BRramp,(sx+2-tx)/176));
+        // shadow the tower casts on the wall to its right (v13: wall band is now y153..206)
+        b.save();b.globalAlpha=.28;R(tx+182,153,20,53,'#241a12');b.restore();
+        // ground shadow + elliptical plinth base (v13: ellipse ratios fattened toward the project's
+        // top-down ellipse grammar — eave ry 8->22, plinth 9->12, ground shadow 8->12)
+        EL(cxL+8,218,102,12,'rgba(28,42,26,.40)');
+        EL(cxL,206,94,12,'#5d4c3c');
+        // body: 4px vertical strips sampled from the cylinder ramp (light peak at ~32%); v13: 102 -> 88 tall
+        for(let sx=tx;sx<tx+176;sx+=4)R(sx,118,4,88,bandAt(BRramp,(sx+2-tx)/176));
         // mortar courses: horizontal lines sagging at the center + vertical joints compressed toward the edges
-        for(let by=112,ci=0;by<=202;by+=11,ci++){for(let sx=tx;sx<tx+176;sx+=2){const tt=(sx+1-tx)/176*2-1;R(sx,by+Math.round(5*(1-tt*tt)),2,1,'#6b5847');}
+        for(let by=128,ci=0;by<=200;by+=11,ci++){for(let sx=tx;sx<tx+176;sx+=2){const tt=(sx+1-tx)/176*2-1;R(sx,by+Math.round(5*(1-tt*tt)),2,1,'#6b5847');}
           const off=(ci%2)*7.5;for(let a=-75+off;a<=75;a+=15){const jx=cxL+Math.round(86*Math.sin(a*Math.PI/180)),jt=(jx-tx)/176*2-1,sg=Math.round(5*(1-jt*jt));R(jx,by-10+sg,1,9,'#6b5847');}}
-        // tower window
-        ELT(cxL,146,14,11,ST.lt);R(cxL-14,146,28,30,ST.lt);R(cxL-10,148,20,26,'#7ea6d8');R(cxL-10,164,20,10,'#5f83b8');R(cxL-1,148,2,26,ST.lt);R(cxL-17,178,34,4,ST.md);
-        // stone rings with the same cylindrical ramp; cap gets an elliptical top
-        ELT(cxL,103,95,8,ST.lt);
-        for(let sx=tx-6;sx<tx+182;sx+=4)R(sx,103,4,12,bandAt(STramp,(sx+2-(tx-6))/188));
-        R(tx-6,113,188,2,ST.dk);
-        for(let sx=tx-4;sx<tx+180;sx+=4)R(sx,158,4,9,bandAt(STramp,(sx+2-(tx-4))/184));
-        R(tx-4,158,184,2,ST.hl);
-        for(let sx=tx-6;sx<tx+182;sx+=4)R(sx,184,4,22,bandAt(STramp,(sx+2-(tx-6))/188));
-        R(tx-6,184,188,2,ST.hl);
-        // cone roof: elliptical eave + 22 fine steps (4px) with left-light shading
-        EL(cxL,101,101,8,SL.dk);ELT(cxL,101,101,8,SL.md);
-        for(let i=0;i<22;i++){const w=200-i*7,sx=Math.round(cxL-w/2),sy=98-i*4;R(sx,sy,w,4,SL.md);R(sx,sy,Math.round(w*.44),4,SL.lt);R(sx+Math.round(w*.72),sy,w-Math.round(w*.72),4,SL.dk);if(i%3===2)R(sx,sy+3,w,1,SL.ol);for(let vx=sx+6+((i*11)%9);vx<sx+w-4;vx+=15+((i*5)%6))R(vx,sy,1,3,SL.dk);}
-        R(cxL-1,10,2,4,'#c9a24a');R(cxL-2,9,5,2,'#ffd94d');
+        // stone rings with the same cylindrical ramp; cap ring sits under the cone's eave ellipse
+        // (v13: rings are drawn before the window so the mid ring no longer paints across the glass)
+        ELT(cxL,117,95,10,ST.lt);
+        for(let sx=tx-6;sx<tx+182;sx+=4)R(sx,112,4,12,bandAt(STramp,(sx+2-(tx-6))/188));
+        R(tx-6,122,188,2,ST.dk);
+        for(let sx=tx-4;sx<tx+180;sx+=4)R(sx,164,4,9,bandAt(STramp,(sx+2-(tx-4))/184));
+        R(tx-4,164,184,2,ST.hl);
+        for(let sx=tx-6;sx<tx+182;sx+=4)R(sx,188,4,18,bandAt(STramp,(sx+2-(tx-6))/188));
+        R(tx-6,188,188,2,ST.hl);
+        // tower window (v13: squashed with the wall, 30 -> 24 tall; drawn over the rings)
+        ELT(cxL,152,14,10,ST.lt);R(cxL-14,152,28,24,ST.lt);R(cxL-10,154,20,20,'#7ea6d8');R(cxL-10,166,20,8,'#5f83b8');R(cxL-1,154,2,20,ST.lt);R(cxL-17,178,34,4,ST.md);
+        // cone roof: v13 — the eave is a fat ellipse (ry 22) whose dark lower half stays visible as the
+        // cone's underside rim, so the cone reads as a sloped surface seen from above; 24 steps (4px)
+        EL(cxL,106,101,22,SL.dk);ELT(cxL,106,101,22,SL.md);
+        for(let i=0;i<24;i++){const w=204-i*7,sx=Math.round(cxL-w/2),sy=104-i*4;R(sx,sy,w,4,SL.md);R(sx,sy,Math.round(w*.44),4,SL.lt);R(sx+Math.round(w*.72),sy,w-Math.round(w*.72),4,SL.dk);if(i%3===2)R(sx,sy+3,w,1,SL.ol);for(let vx=sx+6+((i*11)%9);vx<sx+w-4;vx+=15+((i*5)%6))R(vx,sy,1,3,SL.dk);}
+        R(cxL-1,7,2,5,'#c9a24a');R(cxL-2,5,5,2,'#ffd94d');
       }
       // v12 arch interior: a clipped scene inside each opening — brightest stone floor, mid grey-violet
       // brick back wall (low contrast), darkest ceiling shadow in 2 steps at the top, and a pillar shadow
@@ -1101,7 +1121,7 @@
       R(1702,315,712,5,'rgba(28,42,26,.30)'); // v11: baked ground shadow the steps cast onto the plaza
       b.restore();
     },
-    buildCastleShadows(){const c=document.createElement('canvas');c.width=this.mapBase.width;c.height=this.mapBase.height;const x=c.getContext('2d');x.setTransform(SS,0,0,SS,0,0);x.fillStyle='#33503e';const cast=(a,b,y,dx,dy)=>{x.beginPath();x.moveTo(a,y);x.lineTo(b,y);x.lineTo(b+dx,y+dy);x.lineTo(a+dx,y+dy);x.closePath();x.fill();};cast(256,1792,140,48,24);cast(724,812,140,38,18);cast(1236,1324,140,38,18);cast(864,1184,158,30,16);for(const px of [872,966,1060,1154])cast(px,px+22,158,16,13);for(const [gx,gy] of (this.bigTrees||[])){x.beginPath();x.ellipse(gx*32+16+10,gy*32+30,30,9,0,0,Math.PI*2);x.fill();}for(const [gx,gy] of this.TREES){x.beginPath();x.ellipse(gx*32+16+25,gy*32+16+16,20,8,0,0,Math.PI*2);x.fill();}for(let gy=0;gy<this.mapH();gy++)for(let gx=0;gx<this.mapW();gx++){const k=this.tiles[gy][gx];if(k==='hedge'&&this.tiles[gy+1]?.[gx]!=='hedge')x.fillRect(gx*32+2,gy*32+30,31,7);else if(k==='bench')x.fillRect(gx*32+4,gy*32+23,28,6);else if(k==='plant'){x.beginPath();x.ellipse(gx*32+19,gy*32+29,10,4,0,0,Math.PI*2);x.fill();}}x.beginPath();x.ellipse(1024+22,452,11,4,.55,0,Math.PI*2);x.fill();this.shadowLayer=c;},
+    buildCastleShadows(){const c=document.createElement('canvas');c.width=this.mapBase.width;c.height=this.mapBase.height;const x=c.getContext('2d');x.setTransform(SS,0,0,SS,0,0);x.fillStyle='#33503e';const cast=(a,b,y,dx,dy)=>{x.beginPath();x.moveTo(a,y);x.lineTo(b,y);x.lineTo(b+dx,y+dy);x.lineTo(a+dx,y+dy);x.closePath();x.fill();};cast(256,1792,140,48,24);cast(724,812,140,38,18);cast(1236,1324,140,38,18);cast(864,1184,158,30,16);x.fillRect(252,115,598,4);x.fillRect(1200,115,596,4);x.fillRect(850,156,360,4);for(const px of [872,966,1060,1154])cast(px,px+22,158,16,13);for(const [gx,gy] of (this.bigTrees||[])){x.beginPath();x.ellipse(gx*32+16+10,gy*32+30,30,9,0,0,Math.PI*2);x.fill();}for(const [gx,gy] of this.TREES){x.beginPath();x.ellipse(gx*32+16+25,gy*32+16+16,20,8,0,0,Math.PI*2);x.fill();}for(let gy=0;gy<this.mapH();gy++)for(let gx=0;gx<this.mapW();gx++){const k=this.tiles[gy][gx];if(k==='hedge'&&this.tiles[gy+1]?.[gx]!=='hedge')x.fillRect(gx*32+2,gy*32+30,31,7);else if(k==='bench')x.fillRect(gx*32+4,gy*32+23,28,6);else if(k==='plant'){x.beginPath();x.ellipse(gx*32+19,gy*32+29,10,4,0,0,Math.PI*2);x.fill();}}x.beginPath();x.ellipse(1024+22,452,11,4,.55,0,Math.PI*2);x.fill();this.shadowLayer=c;},
     drawEdges(b){const stone=new Set(['stone','path']);for(let y=0;y<this.mapH();y++)for(let x=0;x<this.mapW();x++){const k=this.tiles[y][x],px=x*32,py=y*32;if(stone.has(k)){for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]])if(this.tiles[y+dy]?.[x+dx]==='grass'){b.fillStyle='#7d6b5d';b.fillRect(px+(dx===1?31:dx===-1?0:0),py+(dy===1?31:0),32,1);}} /* v11: grass-blade spill onto stone removed — it read as stray green dots scattered over the paths (both v10 reviews) */if(k==='water'&&y>0&&this.tiles[y-1][x]!=='water'){b.fillStyle='#7d6b5d';b.fillRect(px,py,32,6);b.fillStyle='#cfefff';b.fillRect(px,py,32,1);}}},
     applyBlur(){ if(this.fg) this.fg.closest('#world-frame').classList.toggle('no-blur',!this.settings.blur); },
     drawTitleArt(){const c=$('title-art'),x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,540);g.addColorStop(0,'#101a36');g.addColorStop(.62,'#9a5862');g.addColorStop(1,'#f2a566');x.fillStyle=g;x.fillRect(0,0,960,540);for(let i=0;i<70;i++){x.fillStyle=`rgba(255,240,200,${.3+(i%4)*.1})`;x.fillRect((i*137)%960,(i*71)%260,2,2);}x.fillStyle='#f9dda0';x.beginPath();x.arc(760,115,38,0,7);x.fill();x.fillStyle='#20243a';x.fillRect(0,365,960,175);for(const [bx,by,bw,bh] of [[120,250,170,180],[320,210,150,220],[500,270,180,160],[690,190,170,230]]){x.fillRect(bx,by,bw,bh);x.fillRect(bx+35,by-60,bw-70,60);x.beginPath();x.moveTo(bx+20,by-60);x.lineTo(bx+bw/2,by-120);x.lineTo(bx+bw-20,by-60);x.fill();for(let wx=bx+35;wx<bx+bw-15;wx+=42){x.fillStyle='#ffc979';x.fillRect(wx,by+35,12,20);}x.fillStyle='#20243a';}x.fillStyle='#11182b';x.fillRect(0,480,960,60);},
