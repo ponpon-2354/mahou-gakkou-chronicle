@@ -196,105 +196,127 @@
     alberto:{ hair:'beard', H:'#cfd3dd', h:'#9aa0ae', L:'#f2f3f7', S:'#eac9a8', s:'#c99481', E:'#232038', A:'#ffd34d', robe:['#1d3a6e','#12264c','#33507f'] },
     elena:  { hair:'long',  H:'#7a4fc0', h:'#4e2f85', L:'#a87fe0', S:'#f5cdbb', s:'#d99890', E:'#30203c', A:'#e9d7a0', robe:['#2a55b8','#1a3576','#4a78d8'], hairpin:true }
   };
-  function charColors(id){ const c=CH[id]||CH.yuuki; return { O:'#211d2b', H:c.H, h:c.h, L:c.L, S:c.S, s:c.s, E:c.E, W:'#fff6e8', C:'#efa08a', M:'#8a4a44', R:c.robe[0], r:c.robe[1], l:c.robe[2], A:c.A, B:'#5a4028', F:'#38281a', G:'#2c2c34', P:'#e0342c' }; }
+  function charColors(id){ const c=CH[id]||CH.yuuki; return { O:'#211d2b', H:c.H, h:c.h, L:c.L, S:c.S, s:c.s, E:c.E, W:'#fff6e8', C:'#efa08a', M:'#8a4a44', R:c.robe[0], r:c.robe[1], l:c.robe[2], A:c.A, B:'#5a4028', F:'#38281a', G:'#2c2c34', P:'#e0342c', K:'#9c3844' }; }
   function blankGrid(){ return Array.from({length:48},()=>Array(32).fill('.')); }
   function put(g,x,y,c){ if(y>=0&&y<48&&x>=0&&x<32) g[y][x]=c; }
   function rect(g,x1,y1,x2,y2,c){ for(let y=y1;y<=y2;y++) for(let x=x1;x<=x2;x++) put(g,x,y,c); }
-  // ---- robe: shared body plan (rows 18..47), frame = walk phase ----
+  // ---- robe: v11 body plan (rows 21..47; head occupies rows 0..20 = ~44% of the sprite).
+  // Per-character widths break the shared box silhouette: [torsoX0,torsoX1, skirtX0,skirtX1]
+  const BODYW = { yuuki:[9,22,8,23], leo:[10,21,9,22], milia:[9,22,7,24], alberto:[8,23,8,23], elena:[10,21,9,22] };
   function robe(g,id,dir,frame){
     const side = dir==='left'||dir==='right';
     if(side){
       // profile body: front at left (facing left; mirrored for right)
-      rect(g,11,19,23,20,'R'); rect(g,10,21,24,30,'R'); rect(g,10,31,25,41,'R'); rect(g,10,42,25,43,'R');
-      rect(g,10,21,12,41,'l'); rect(g,21,21,24,41,'r'); rect(g,10,31,25,31,'B'); put(g,12,31,'A'); put(g,13,31,'A');
-      rect(g,10,22,11,33,'r'); rect(g,10,34,11,35,'S'); // front arm + hand
-      put(g,15,19,'A'); put(g,16,19,'A'); put(g,15,20,'A');
-      // feet: stride
-      if(!frame){ rect(g,8,46,13,47,'F'); rect(g,19,46,24,47,'F'); rect(g,10,44,14,45,'r'); rect(g,18,44,23,45,'R'); }
-      else { rect(g,17,46,22,47,'F'); rect(g,9,45,14,46,'F'); put(g,9,47,'F'); rect(g,10,44,15,44,'r'); rect(g,17,44,22,45,'R'); }
+      const bx0 = id==='leo'?11:10, bx1 = id==='alberto'?24:23;
+      rect(g,12,21,19,21,'R'); rect(g,bx0,22,bx1,31,'R');
+      rect(g,bx0,32,bx1,32,'B'); put(g,bx0+1,32,'A'); put(g,bx0+2,32,'A');
+      rect(g,bx0,33,bx1,42,'R'); rect(g,bx0,43,bx1,43,'r'); // hem line (static across frames)
+      rect(g,bx0,22,bx0+1,42,'l'); rect(g,bx1-1,22,bx1,42,'r');
+      if(id==='alberto') rect(g,bx0-1,28,bx0-1,36,'R'); // belly protrusion at the front
+      if(id==='milia'||id==='elena') rect(g,bx0,38,bx1+1,42,'R'); // skirt flare toward the back hem
+      if(id==='alberto'){ rect(g,bx0,21,bx1,26,'r'); rect(g,bx0,21,bx1,22,'R'); rect(g,bx0,27,bx1,27,'A'); } // shoulder mantle + gold trim
+      if(id==='elena'){ rect(g,bx0,21,bx1,24,'l'); rect(g,bx0,25,bx1,25,'A'); } // shawl
+      const ay = frame?25:24; // front arm swings 1 row with the walk frame; hem and head never move
+      rect(g,bx0,ay,bx0+1,ay+9,'r'); rect(g,bx0,ay+10,bx0+1,ay+11,'S');
+      put(g,bx0+4,21,'A'); put(g,bx0+5,21,'A'); // collar accent
+      if(id==='leo'){ rect(g,bx0-4,27,bx0-2,32,'K'); put(g,bx0-4,28,'W'); put(g,bx0-4,30,'W'); } // book held in front
+      // feet: stride, confined to rows 44..47
+      if(!frame){ rect(g,bx0-2,46,bx0+3,47,'F'); rect(g,bx1-4,46,bx1+1,47,'F'); rect(g,bx0,44,bx0+4,45,'r'); rect(g,bx1-5,44,bx1-1,45,'R'); }
+      else { rect(g,bx1-3,46,bx1+2,47,'F'); rect(g,bx0-1,45,bx0+4,46,'F'); put(g,bx0-1,47,'F'); rect(g,bx0+1,44,bx0+5,44,'r'); rect(g,bx1-4,44,bx1,45,'R'); }
       return;
     }
     // front/back body
-    rect(g,10,18,21,20,'R'); rect(g,9,21,22,30,'R'); rect(g,8,31,23,41,'R'); rect(g,7,42,24,43,'R');
-    rect(g,9,21,11,41,'l'); rect(g,20,21,22,41,'r'); rect(g,21,31,23,41,'r');
-    rect(g,8,31,23,31,'B'); rect(g,14,30,17,32,'B'); put(g,15,31,'A'); put(g,16,31,'A');
+    const [tx0,tx1,sx0,sx1] = BODYW[id]||BODYW.yuuki;
+    rect(g,12,21,19,21,'R'); rect(g,11,22,20,22,'R'); // shoulder slope (neck -> shoulders)
+    rect(g,tx0,23,tx1,31,'R');
+    rect(g,tx0,32,tx1,32,'B'); rect(g,15,32,16,32,'A'); // belt + buckle
+    rect(g,tx0,33,tx1,37,'R'); rect(g,sx0,38,sx1,42,'R'); rect(g,sx0,43,sx1,43,'r'); // skirt flare + static hem
+    rect(g,tx0,23,tx0+1,37,'l'); rect(g,tx1-1,23,tx1,37,'r'); rect(g,sx0,38,sx0+1,42,'l'); rect(g,sx1-1,38,sx1,42,'r');
+    if(id==='alberto'){ rect(g,7,21,24,26,'r'); rect(g,7,21,24,22,'R'); rect(g,12,21,19,21,'R'); rect(g,7,27,24,27,'A'); } // shoulder mantle, gold hem trim
+    if(id==='elena'){ rect(g,8,21,23,24,'l'); rect(g,12,21,19,21,'R'); rect(g,8,25,23,25,'A'); } // shawl with gold edge
     if(dir==='down'){
-      rect(g,13,18,18,19,'W'); put(g,15,20,'W'); put(g,16,20,'W'); // shirt V
-      if(id==='yuuki'){ rect(g,14,19,17,21,'A'); put(g,15,22,'A'); put(g,16,22,'A'); } // gold medallion
-      else if(id==='leo'){ rect(g,14,19,17,20,'A'); }
-      else if(id==='milia'){ put(g,14,18,'P'); put(g,17,18,'P'); put(g,15,19,'P'); put(g,16,19,'P'); put(g,15,20,'P'); put(g,16,21,'P'); put(g,15,22,'P'); } // ribbon tie
-      else if(id==='alberto'){ rect(g,10,22,11,38,'A'); rect(g,20,22,21,38,'A'); }
-      else if(id==='elena'){ rect(g,10,19,11,20,'A'); rect(g,20,19,21,20,'A'); }
-    } else { put(g,15,24,'r'); put(g,16,24,'r'); rect(g,15,25,16,40,'r'); } // back seam
-    rect(g,7,22,8,33,'r'); rect(g,23,22,24,33,'r'); rect(g,7,34,8,35,'S'); rect(g,23,34,24,35,'S'); // sleeves + hands
-    // hem + feet
-    if(!frame){ rect(g,9,44,14,45,'r'); rect(g,17,44,22,45,'R'); rect(g,9,46,14,47,'F'); rect(g,17,46,22,47,'F'); }
-    else { rect(g,10,44,15,44,'r'); rect(g,17,44,22,45,'R'); rect(g,18,46,23,47,'F'); rect(g,9,45,14,46,'F'); put(g,9,47,'F'); }
+      if(id!=='alberto'&&id!=='elena'){ rect(g,13,23,18,24,'W'); put(g,15,25,'W'); put(g,16,25,'W'); } // shirt V
+      if(id==='yuuki'){ rect(g,14,24,17,26,'A'); put(g,15,27,'A'); put(g,16,27,'A'); } // gold medallion
+      else if(id==='leo'){ rect(g,14,24,17,25,'A'); rect(g,23,26,26,31,'K'); put(g,23,27,'W'); put(g,23,29,'W'); put(g,23,30,'W'); } // silver collar + book at his left side
+      else if(id==='milia'){ put(g,14,23,'P'); put(g,17,23,'P'); put(g,15,24,'P'); put(g,16,24,'P'); put(g,15,25,'P'); put(g,16,26,'P'); put(g,15,27,'P'); } // ribbon tie
+      else if(id==='elena'){ put(g,15,26,'A'); put(g,16,26,'A'); } // brooch under the shawl
+    } else { for(let y=24;y<=40;y+=2){ put(g,15,y,'r'); put(g,16,y,'r'); } } // back seam (dashed)
+    const sy0 = frame?25:24; // sleeves swing 1 row; hands follow
+    rect(g,tx0-2,sy0,tx0-1,sy0+9,'r'); rect(g,tx1+1,sy0,tx1+2,sy0+9,'r');
+    rect(g,tx0-2,sy0+10,tx0-1,sy0+11,'S'); rect(g,tx1+1,sy0,tx1+2,sy0+11,'S');
+    // legs + feet: only rows 44..47 differ between frames
+    if(!frame){ rect(g,sx0+1,44,sx0+5,45,'r'); rect(g,sx1-5,44,sx1-1,45,'R'); rect(g,sx0+1,46,sx0+6,47,'F'); rect(g,sx1-6,46,sx1-1,47,'F'); }
+    else { rect(g,sx0+2,44,sx0+6,44,'r'); rect(g,sx1-5,44,sx1-1,45,'R'); rect(g,sx0+3,45,sx0+7,46,'F'); put(g,sx0+3,47,'F'); rect(g,sx1-6,46,sx1-1,47,'F'); }
   }
   function head(g,id,dir){
     const c=CH[id]||CH.yuuki, style=c.hair, side=dir==='left'||dir==='right';
+    const pony = id==='elena'; // v11: Elena's long hair becomes a side ponytail + shawl so she stops sharing Milia's silhouette
     if(side){
-      // profile head facing left
-      rect(g,11,2,23,6,'H'); rect(g,10,3,24,5,'H'); rect(g,12,0,21,1,'H'); rect(g,12,7,23,8,'H');
-      rect(g,11,9,20,17,'S'); rect(g,10,11,10,14,'S'); put(g,9,12,'S'); put(g,9,13,'S'); // nose
-      rect(g,11,7,20,8,'S'); rect(g,11,9,20,9,'s');
-      put(g,12,11,'E'); put(g,12,12,'E'); put(g,13,11,'W');
-      put(g,11,16,'M'); put(g,12,16,'M'); put(g,10,14,'C');
-      if(style==='slick'){ rect(g,13,0,22,2,'h'); rect(g,20,3,24,9,'h'); rect(g,21,4,23,8,'H'); put(g,14,1,'L'); put(g,17,1,'L'); }
-      if(style==='curly'){ for(const bx of [11,15,19,22]){ put(g,bx,0,'H'); put(g,bx+1,0,'H'); } rect(g,21,3,25,10,'H'); rect(g,22,4,24,9,'h'); put(g,13,2,'L'); put(g,18,2,'L'); }
-      if(style==='long'){ rect(g,19,3,25,20,'H'); rect(g,20,4,24,19,'h'); rect(g,21,5,22,18,'H'); if(c.hairpin){ put(g,21,4,'A'); put(g,22,4,'A'); } if(c.ribbon){ rect(g,19,0,24,2,'P'); put(g,25,1,'P'); } if(c.braid){ for(let y=21;y<=34;y+=3){ rect(g,21,y,25,y+1,'H'); rect(g,22,y+2,24,y+2,'h'); } rect(g,21,35,25,36,'P'); } }
-      if(style==='beard'){ rect(g,13,0,21,1,'L'); rect(g,20,3,24,10,'H'); rect(g,11,13,19,19,'H'); rect(g,12,14,18,18,'L'); rect(g,13,19,17,20,'h'); }
-      if(c.glasses){ rect(g,10,10,15,10,'G'); rect(g,10,13,15,13,'G'); put(g,10,11,'G'); put(g,10,12,'G'); put(g,15,11,'G'); put(g,15,12,'G'); rect(g,15,11,21,11,'G'); }
-      rect(g,13,18,18,19,'S');
+      // profile head facing left (head rows 0..20)
+      rect(g,12,0,21,1,'H'); rect(g,11,2,23,7,'H'); rect(g,10,4,24,6,'H');
+      rect(g,11,9,20,19,'S'); rect(g,11,9,20,10,'s'); put(g,10,13,'S'); put(g,9,14,'S'); put(g,10,14,'S'); // forehead shade + nose
+      put(g,12,12,'E'); put(g,12,13,'E'); put(g,13,12,'W');
+      put(g,11,17,'M'); put(g,12,17,'M'); put(g,10,15,'C');
+      if(style==='slick'){ rect(g,13,2,22,4,'h'); rect(g,20,3,24,10,'h'); rect(g,21,4,23,9,'H'); put(g,14,1,'L'); put(g,17,1,'L'); rect(g,11,8,14,8,'H'); }
+      if(style==='curly'){ for(const bx of [11,15,19,22]){ put(g,bx,0,'H'); put(g,bx+1,0,'H'); put(g,bx,1,'h'); } rect(g,21,3,25,11,'H'); rect(g,22,4,24,10,'h'); put(g,13,2,'L'); put(g,18,2,'L'); }
+      if(style==='long'&&!pony){ rect(g,19,3,25,38,'H'); rect(g,20,4,24,36,'h'); rect(g,21,5,22,34,'H'); if(c.ribbon){ rect(g,19,0,24,2,'P'); put(g,25,1,'P'); } if(c.braid){ for(let y=22;y<=35;y+=3){ rect(g,21,y,25,y+1,'H'); rect(g,22,y+2,24,y+2,'h'); } rect(g,21,36,25,37,'P'); } }
+      if(pony){ rect(g,21,8,26,30,'H'); rect(g,22,10,25,28,'h'); rect(g,21,7,25,8,'A'); put(g,21,4,'A'); put(g,22,4,'A'); rect(g,19,3,24,20,'H'); rect(g,20,4,23,18,'h'); }
+      if(style==='beard'){ rect(g,13,0,21,1,'L'); rect(g,20,3,24,11,'H'); rect(g,10,15,17,21,'H'); rect(g,11,16,16,20,'L'); rect(g,12,21,15,22,'h'); put(g,11,17,'M'); }
+      if(c.glasses){ rect(g,10,11,15,11,'G'); rect(g,10,14,15,14,'G'); put(g,10,12,'G'); put(g,10,13,'G'); put(g,15,12,'G'); put(g,15,13,'G'); rect(g,15,11,21,11,'G'); }
+      rect(g,13,20,18,21,'S'); // neck
       return;
     }
     if(dir==='up'){
-      rect(g,9,2,22,16,'H'); rect(g,10,0,21,1,'H'); rect(g,8,4,23,13,'H'); rect(g,10,17,21,17,'h');
-      if(style==='slick'){ rect(g,11,3,13,14,'h'); rect(g,18,3,20,14,'h'); put(g,15,2,'L'); put(g,16,2,'L'); }
-      if(style==='curly'){ for(const bx of [9,13,17,20]){ put(g,bx,0,'H'); put(g,bx+1,0,'H'); put(g,bx,1,'h'); } for(let i=0;i<7;i++)put(g,10+i*2,6+(i%3),'L'); }
-      if(style==='long'){ rect(g,5,5,8,38,'H'); rect(g,23,5,26,38,'H'); rect(g,6,6,7,36,'h'); rect(g,24,6,25,36,'h'); put(g,6,10,'L'); put(g,24,14,'L'); if(c.hairpin){ put(g,22,3,'A'); put(g,23,3,'A'); } if(c.ribbon){ rect(g,18,-0,25,2,'P'); put(g,26,1,'P'); put(g,19,1,'h'); } if(c.braid){ for(let y=20;y<=33;y+=3){ rect(g,5,y,8,y+1,'h'); rect(g,5,y+2,8,y+2,'H'); } rect(g,5,34,8,35,'P'); } }
-      if(style==='beard'){ rect(g,11,2,20,5,'L'); rect(g,12,3,19,4,'S'); rect(g,9,6,10,14,'H'); rect(g,21,6,22,14,'H'); }
-      rect(g,13,18,18,19,'h');
+      rect(g,10,0,21,1,'H'); rect(g,9,2,22,19,'H'); rect(g,8,4,23,14,'H'); rect(g,10,19,21,20,'h');
+      if(style==='slick'){ rect(g,11,3,13,15,'h'); rect(g,18,3,20,15,'h'); put(g,15,2,'L'); put(g,16,2,'L'); }
+      if(style==='curly'){ for(const bx of [9,13,17,20]){ put(g,bx,0,'H'); put(g,bx+1,0,'H'); put(g,bx,1,'h'); } for(let i=0;i<7;i++)put(g,10+i*2,6+(i%3),'L'); put(g,10,20,'H'); put(g,15,21,'H'); put(g,20,20,'H'); }
+      if(style==='long'&&!pony){ rect(g,5,5,8,40,'H'); rect(g,23,5,26,40,'H'); rect(g,6,6,7,38,'h'); rect(g,24,6,25,38,'h'); rect(g,9,16,22,38,'H'); rect(g,11,18,12,36,'h'); rect(g,19,18,20,36,'h'); put(g,6,12,'L'); put(g,24,16,'L'); if(c.ribbon){ rect(g,18,0,25,2,'P'); put(g,26,1,'P'); } if(c.braid){ for(let y=22;y<=35;y+=3){ rect(g,5,y,8,y+1,'h'); rect(g,5,y+2,8,y+2,'H'); } rect(g,5,36,8,37,'P'); } }
+      if(pony){ rect(g,9,16,22,26,'H'); rect(g,20,8,24,34,'H'); rect(g,21,10,23,32,'h'); rect(g,20,7,24,8,'A'); rect(g,6,5,8,24,'H'); put(g,22,3,'A'); put(g,23,3,'A'); }
+      if(style==='beard'){ rect(g,11,2,20,5,'L'); rect(g,12,3,19,4,'S'); rect(g,9,6,10,15,'H'); rect(g,21,6,22,15,'H'); }
+      rect(g,13,20,18,21,'h');
       return;
     }
-    // ---- front ----
-    rect(g,10,7,21,17,'S'); rect(g,10,7,21,8,'s'); rect(g,19,9,21,16,'s'); put(g,10,9,'S');
-    // eyes (2x3, white catchlight), brows, nose, mouth, cheeks
-    rect(g,12,11,13,13,'E'); rect(g,18,11,19,13,'E'); put(g,12,11,'W'); put(g,18,11,'W');
-    rect(g,12,10,13,10,'h'); rect(g,18,10,19,10,'h');
-    put(g,15,15,'s'); put(g,16,15,'s'); rect(g,14,16,17,16,'M');
-    put(g,11,14,'C'); put(g,20,14,'C');
+    // ---- front (face rows 9..19, eyes 2x3 at rows 12..14) ----
+    rect(g,10,9,21,19,'S'); rect(g,10,9,21,10,'s'); rect(g,19,11,21,18,'s');
+    rect(g,12,12,13,14,'E'); rect(g,18,12,19,14,'E'); put(g,12,12,'W'); put(g,18,12,'W');
+    rect(g,12,11,13,11,'h'); rect(g,18,11,19,11,'h');
+    put(g,15,16,'s'); put(g,16,16,'s'); rect(g,14,17,17,17,'M');
+    put(g,11,15,'C'); put(g,20,15,'C');
     if(style==='slick'){
-      rect(g,9,2,22,6,'H'); rect(g,10,0,21,1,'H'); rect(g,8,3,9,9,'H'); rect(g,22,3,23,9,'H');
+      rect(g,10,0,21,1,'H'); rect(g,9,2,22,6,'H'); rect(g,8,3,9,10,'H'); rect(g,22,3,23,10,'H');
       rect(g,11,3,20,4,'h'); put(g,12,2,'L'); put(g,16,2,'L'); put(g,19,5,'h'); put(g,11,5,'h');
-      rect(g,10,7,21,7,'H'); // hairline
+      rect(g,10,7,21,7,'H'); rect(g,10,8,13,8,'H'); rect(g,18,8,21,8,'H'); // hairline with exposed forehead centre
     }
     if(style==='curly'){
-      rect(g,9,2,22,7,'H'); rect(g,10,0,21,1,'H'); rect(g,8,3,9,10,'H'); rect(g,22,3,23,10,'H');
-      for(const bx of [9,13,17,20]){ put(g,bx,-0,'H'); put(g,bx+1,0,'H'); put(g,bx,1,'h'); }
-      put(g,11,3,'L'); put(g,15,4,'L'); put(g,19,3,'L'); rect(g,10,8,21,8,'H');
+      rect(g,10,0,21,1,'H'); rect(g,9,2,22,7,'H'); rect(g,8,3,9,11,'H'); rect(g,22,3,23,11,'H');
+      for(const bx of [8,12,16,20]){ put(g,bx,0,'H'); put(g,bx+1,0,'H'); put(g,bx+2,0,'H'); put(g,bx+1,1,'h'); }
+      put(g,11,3,'L'); put(g,15,4,'L'); put(g,19,3,'L'); rect(g,10,8,21,8,'H'); put(g,13,9,'H'); put(g,18,9,'H');
     }
-    if(style==='long'){
-      rect(g,9,2,22,6,'H'); rect(g,10,0,21,1,'H'); rect(g,11,3,20,4,'L');
-      rect(g,5,5,8,38,'H'); rect(g,23,5,26,38,'H'); rect(g,6,6,7,36,'h'); rect(g,24,6,25,36,'h');
+    if(style==='long'&&!pony){
+      rect(g,10,0,21,1,'H'); rect(g,9,2,22,6,'H'); rect(g,11,3,20,4,'L');
+      rect(g,5,5,8,40,'H'); rect(g,23,5,26,40,'H'); rect(g,6,6,7,38,'h'); rect(g,24,6,25,38,'h');
       put(g,6,12,'L'); put(g,24,16,'L'); rect(g,9,5,9,12,'H'); rect(g,22,5,22,12,'H');
-      if(c.hairpin){ put(g,21,3,'A'); put(g,22,3,'A'); put(g,22,4,'A'); }
-      if(c.ribbon){ rect(g,18,0,26,2,'P'); put(g,27,1,'P'); put(g,17,1,'P'); put(g,21,1,'h'); put(g,22,1,'h'); rect(g,20,3,23,3,'P'); }
-      if(c.braid){ for(let y=20;y<=33;y+=3){ rect(g,5,y,8,y+1,'h'); rect(g,5,y+2,8,y+2,'H'); } rect(g,5,34,8,35,'P'); }
+      if(c.ribbon){ rect(g,18,0,25,2,'P'); put(g,26,1,'P'); put(g,17,1,'P'); rect(g,20,3,23,3,'P'); }
+      if(c.braid){ for(let y=22;y<=35;y+=3){ rect(g,5,y,8,y+1,'h'); rect(g,5,y+2,8,y+2,'H'); } rect(g,5,36,8,37,'P'); }
+    }
+    if(pony){
+      rect(g,10,0,21,1,'H'); rect(g,9,2,22,6,'H'); rect(g,11,3,20,4,'L');
+      rect(g,6,5,9,28,'H'); rect(g,7,6,8,26,'h'); // shorter back panel on her right
+      rect(g,24,8,27,30,'H'); rect(g,25,10,26,28,'h'); rect(g,24,7,27,8,'A'); // ponytail with gold band on her left
+      rect(g,22,5,22,12,'H'); put(g,21,3,'A'); put(g,22,3,'A'); put(g,22,4,'A'); // hairpin
     }
     if(style==='beard'){
-      rect(g,9,2,22,4,'H'); rect(g,10,0,21,1,'H'); rect(g,8,3,9,12,'H'); rect(g,22,3,23,12,'H');
-      rect(g,11,2,20,3,'L');
-      rect(g,10,14,21,19,'H'); rect(g,11,15,20,18,'L'); rect(g,13,19,18,20,'h'); // beard
-      rect(g,14,16,17,16,'M'); // mouth through beard
+      rect(g,10,0,21,1,'H'); rect(g,9,2,22,5,'H'); rect(g,8,3,9,13,'H'); rect(g,22,3,23,13,'H');
+      rect(g,11,2,20,3,'L'); rect(g,12,11,13,11,'L'); rect(g,18,11,19,11,'L'); // grey brows over the eyes
+      rect(g,10,15,21,21,'H'); rect(g,11,16,20,20,'L'); rect(g,13,21,18,22,'h'); // beard widening the jaw
+      rect(g,14,17,17,17,'M'); // mouth through beard
     }
     if(c.glasses){
-      rect(g,11,10,20,10,'G'); rect(g,11,14,20,14,'G');
-      put(g,11,11,'G'); put(g,11,12,'G'); put(g,11,13,'G'); put(g,20,11,'G'); put(g,20,12,'G'); put(g,20,13,'G');
-      put(g,14,11,'G'); put(g,17,11,'G'); rect(g,15,10,16,10,'G');
-      rect(g,9,11,10,11,'G'); rect(g,21,11,22,11,'G');
+      rect(g,11,11,20,11,'G'); rect(g,11,15,20,15,'G');
+      put(g,11,12,'G'); put(g,11,13,'G'); put(g,11,14,'G'); put(g,20,12,'G'); put(g,20,13,'G'); put(g,20,14,'G');
+      rect(g,15,11,16,11,'G'); rect(g,9,12,10,12,'G'); rect(g,21,12,22,12,'G');
     }
-    rect(g,13,18,18,19,'S'); // neck (robe collar overlays sides)
+    rect(g,13,20,18,21,'S'); // neck (robe collar overlays sides)
   }
   function makeChar(id,dir,frame){
     const g=blankGrid(), c=CH[id]||CH.yuuki;
@@ -303,6 +325,10 @@
       if(dir==='left'){ rect(g,5,12,6,44,'B'); rect(g,5,9,6,11,'A'); }
       else if(dir!=='right'){ rect(g,27,10,28,44,'B'); rect(g,27,7,28,9,'A'); }
     }
+    // v11 height variety (cheap, effective silhouette difference): Leo is 2 rows shorter, Alberto 2 rows taller.
+    // Rows are removed/duplicated inside the skirt block, so head, belt and foot anchor stay consistent across frames.
+    if(id==='leo') g.splice(35,2);
+    else if(id==='alberto') g.splice(37,0,g[36].slice(),g[36].slice());
     return g.map(r=>r.join(''));
   }
   const enemyMaps = {
@@ -334,13 +360,14 @@
     let rows=makeChar(id,dir==='right'?'left':dir,frame?1:0);
     if(dir==='right') rows=rows.map(r=>Array.from(r).reverse().join(''));
     const outlined=outlineRows(rows), colors=charColors(id);
-    const canvas=document.createElement('canvas'); canvas.width=34; canvas.height=50;
+    // v11: canvas follows the outlined sprite's real size (heights now vary per character: 46/48/50 rows + outline)
+    const canvas=document.createElement('canvas'); canvas.width=outlined[0].length; canvas.height=outlined.length;
     const c=canvas.getContext('2d'); paint(c,outlined,colors,0,0,1); cache.set(key,canvas); return canvas;
   }
   function drawCharacter(ctx,id,dir,frame,cx,feetY,scale) {
-    const bob=frame?1:0;
-    const baseX=Math.round(cx-17*scale), baseY=Math.round(feetY-(49+bob)*scale);
-    ctx.drawImage(getSprite(id,dir,frame),baseX,baseY,34*scale,50*scale);
+    const spr=getSprite(id,dir,frame), bob=frame?1:0;
+    const baseX=Math.round(cx-(spr.width/2)*scale), baseY=Math.round(feetY-(spr.height-1+bob)*scale);
+    ctx.drawImage(spr,baseX,baseY,spr.width*scale,spr.height*scale);
   }
   function drawEnemy(ctx,id,cx,cy,scale,paletteOverride){const rows=enemyMaps[id]||enemyMaps.slime;paint(ctx,rows,{...(enemyColors[id]||enemyColors.slime),...(paletteOverride||{})},Math.round(cx-12*scale),Math.round(cy-rows.length*scale/2),scale);}
   root.MahouSprites={drawCharacter,drawEnemy,enemySpriteIds:Object.keys(enemyMaps)};
@@ -693,18 +720,20 @@
       }
       this.TREES.forEach(([gx,gy])=>{
         const x=gx*TILE+16,y=gy*TILE+16,seed=(gx*73856093^gy*19349663)>>>0;
-        // ground shadow: stepped ellipse in the ground's dark tone + darker core (v9 grounding)
-        this.v4Ellipse(b,x+5,y+13,19,5,'#2c5a24');this.v4Ellipse(b,x+4,y+13,12,3,'#1f4420');
+        // ground shadow: stepped ellipse in the ground's dark tone + darker core (v9 grounding, widened for the v11 canopy)
+        this.v4Ellipse(b,x+5,y+13,23,6,'#2c5a24');this.v4Ellipse(b,x+4,y+13,14,4,'#1f4420');
         // trunk: vertical tone bands (light left, dark right) + root flare
         b.fillStyle='#4d3026';b.fillRect(x-5,y+5,11,3);
         b.fillStyle='#96613b';b.fillRect(x-3,y-14,2,21);b.fillStyle='#6a3f29';b.fillRect(x-1,y-14,2,21);b.fillStyle='#3d2419';b.fillRect(x+1,y-14,2,21);
-        // canopy (v9): clusters ordered back/top first, front/centre last; two passes (all outlines, then all bodies) so the canopy rim reads as one mass
-        const jx=(seed%5)-2,jy=(seed>>>3)%3,sc=.88+((seed>>>5)%5)*.07;
-        const cl=[[x+(seed%7)-3,y-47,8*sc,6*sc,seed+67],[x-6,y-41,11*sc,9*sc,seed+21],[x+8,y-36-jy,10*sc,8*sc,seed+29],[x+13,y-23,11*sc,10*sc,seed+13],[x-14,y-20+jy,12*sc,10*sc,seed+7]];
-        if(seed%3!==0)cl.splice(3,0,[x-19,y-30,8*sc,7*sc,seed+43]);if(seed%4!==1)cl.splice(4,0,[x+20,y-33,7*sc,6*sc,seed+51]);
-        cl.push([x+jx,y-28,16*sc,13*sc,seed]);
+        // canopy (v11): 5-7 masses of radius 9-19 (canopy ~2.4 tiles wide, Claude's v11 sizing), ordered back/top first;
+        // three passes (outlines, bodies, under-shadow crescents) so the canopy reads as stacked masses, not noise
+        const jx=(seed%5)-2,jy=(seed>>>3)%3,sc=.9+((seed>>>5)%5)*.06;
+        const cl=[[x+(seed%7)-3,y-50,10*sc,7*sc,seed+67],[x-7,y-44,13*sc,10*sc,seed+21],[x+9,y-39-jy,12*sc,9*sc,seed+29],[x+15,y-25,13*sc,11*sc,seed+13],[x-16,y-22+jy,14*sc,11*sc,seed+7]];
+        if(seed%3!==0)cl.splice(3,0,[x-23,y-33,10*sc,8*sc,seed+43]);if(seed%4!==1)cl.splice(4,0,[x+24,y-36,9*sc,7*sc,seed+51]);
+        cl.push([x+jx,y-30,19*sc,14*sc,seed]);
         cl.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],0));
         cl.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],1));
+        cl.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],3));
       });
       // v6 big trees (castle only): ~1.7x canopy, thicker trunk
       (this.bigTrees||[]).forEach(([gx,gy])=>{
@@ -718,6 +747,7 @@
         cl2.push([x,y-48,26*sc2,21*sc2,seed]);
         cl2.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],0));
         cl2.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],1));
+        cl2.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],3));
       });
 
       if(this.mapId==='castle'){
@@ -749,39 +779,35 @@
       this.fgArt=document.createElement('canvas');this.fgArt.width=960;this.fgArt.height=640;const f=this.fgArt.getContext('2d');for(const [x,y] of [[-18,590],[90,640],[870,640],[970,590],[930,-10],[20,-10]])for(let i=0;i<24;i++){f.fillStyle=['#172d2c88','#203a3288','#29453688'][i%3];f.beginPath();f.arc(x+((i*29)%110)-40,y+((i*37)%75)-35,9+(i%4)*4,0,Math.PI*2);f.fill();}
       this.particles=Array.from({length:24},(_,i)=>({x:(i*173+47)%960,y:(i*97+23)%640,phase:i*1.71}));
     },
-    // ---- v9 leaf cluster: dark-green mass of small leaf tufts — per-cluster cel shading (light top-left / dark bottom-right),
-    // tone area tuned to roughly light 20% / mid 45% / dark 35%, whole-canopy outline via two-pass drawing (mode 0=outline, 1=body, 2=both) ----
+    // ---- v11 leaf cluster: DQ6 cluster grammar — a solid cel mass (mid base / dark bottom / light rim tufts)
+    // wrapped in a 1-unit dark outline. NO 1px speckles, ticks or sawteeth (v10 reviews: they read as AI noise).
+    // Trees draw in 3 passes (mode 0=outline, 1=body, 3=under-shadow crescent) so overlapping masses shadow each other. ----
     leafCluster(c,cx,cy,rx,ry,seed,mode=2){const gh=(i,k)=>((seed^(i*2654435761)^(k*40503))>>>0);
       const LT='#7fc645',MD='#3d8a30',DK='#26592a',OUT='#13301b';
-      // quantized profile: half-widths held in chunks, octagon-leaning, asymmetric jitter + side notches + occasional 1px tuft protrusion
-      const nB=Math.max(3,Math.round(ry));const prof=[];
-      for(let bi=0;bi<nB;bi++){const t=(bi+.5)/nB*2-1;let pr=Math.pow(Math.max(0,1-t*t),.5);if(bi===0||bi===nB-1)pr*=.72;
-        const jl=((gh(bi,31)%5)-2)*.5,jr=((gh(bi,47)%5)-2)*.5;let nl=0,nr=0;const hn=gh(bi,59);if(hn%5===0)nl=2;else if(hn%5===2)nr=2;
-        if(hn%6===3)nr=-1;else if(hn%6===5)nl=-1;
-        prof.push([Math.max(1,Math.round((rx*pr+jl-nl)*2)/2),Math.max(1,Math.round((rx*pr+jr-nr)*2)/2)]);}
+      // profile in ~2-unit bands, half-widths quantized to whole units with a gentle 3-4 unit bump rhythm on the rim
+      const nB=Math.max(2,Math.round(ry));const prof=[];
+      for(let bi=0;bi<nB;bi++){const t=(bi+.5)/nB*2-1;let pr=Math.sqrt(Math.max(0,1-t*t));if(bi===0||bi===nB-1)pr*=.7;
+        prof.push(Math.max(1.5,Math.round(rx*pr+((gh(bi,31)%3)-1)*.5)));}
       const bandH=2*ry/nB;
-      // outline pass: the whole silhouette grown .5 in the darkest tone (trees draw all outlines first, then all bodies, so only the outer rim survives)
-      if(mode!==1){c.fillStyle=OUT;for(let bi=0;bi<nB;bi++){const [wl,wr]=prof[bi];c.fillRect(cx-wl-.5,cy-ry+bi*bandH-.25,wl+wr+1,bandH+.5);}}
+      // crescent pass (trees only, drawn after all bodies): dark skirt under the cluster's bottom edge,
+      // so an upper mass casts a readable shadow onto the mass/trunk below it
+      if(mode===3){c.fillStyle=DK;const w=prof[nB-1];c.fillRect(cx-w*.6,cy+ry,w*1.2,1.5);return;}
+      // outline pass: silhouette grown 1 unit in the darkest tone
+      if(mode!==1){c.fillStyle=OUT;
+        for(let bi=0;bi<nB;bi++){const w=prof[bi];c.fillRect(cx-w-1,cy-ry+bi*bandH-.5,w*2+2,bandH+1);}
+        c.fillRect(cx-prof[0]*.7,cy-ry-1,prof[0]*1.4,1);c.fillRect(cx-prof[nB-1]*.7,cy+ry,prof[nB-1]*1.4,1);}
       if(mode===0)return;
-      // body: per-cluster diagonal split — light cap at top-left, dark mass at bottom-right; bottom band always dark
-      for(let bi=0;bi<nB;bi++){const t=(bi+.5)/nB*2-1,[wl,wr]=prof[bi],y0=cy-ry+bi*bandH,W=wl+wr,x0=cx-wl;
-        if(bi===nB-1){c.fillStyle=DK;c.fillRect(x0,y0,W,bandH);continue;}
-        const fL=Math.max(0,.20-.22*t),fD=Math.min(1,.68-.28*t);
+      // body: flat mid base; top band carries a light rim on its left half; lower bands sink into shadow (bottom band fully dark)
+      for(let bi=0;bi<nB;bi++){const w=prof[bi],y0=cy-ry+bi*bandH,x0=cx-w,W=w*2,t=(bi+.5)/nB;
         c.fillStyle=MD;c.fillRect(x0,y0,W,bandH);
-        if(fL>0.01){c.fillStyle=LT;c.fillRect(x0,y0,W*fL,bandH);}
-        if(fD<0.99){c.fillStyle=DK;c.fillRect(x0+W*fD,y0,W*(1-fD),bandH);}}
-      // downward sawteeth on the lower edge (leaf tips), darkest tone
-      c.fillStyle=OUT;for(let k=0;k<7;k++){const h=gh(k,71);c.fillRect(cx-rx+2+(h%Math.max(4,Math.round(rx*2-4))),cy+ry-(h%2)*.5,1,1);}
-      // angular crevice notches (stepped inverted-V) in the lower-middle
-      for(let i=0;i<3;i++){const h=gh(i,83),nx=cx+((h%120)/100-.6)*rx*.8,ny=cy+ry*(.05+((h>>>8)%40)/100);c.fillStyle=OUT;c.fillRect(nx-1.5,ny,3,.5);c.fillRect(nx-1,ny+.5,2,.5);c.fillRect(nx-.5,ny+1,1,.5);}
-      // dark gap speckles: small deep dots scattered through the mid/dark zones so the mass reads as dense leaf tufts, not flat polygons
-      const nS=Math.max(2,Math.round(rx*ry/13));
-      for(let i=0;i<nS;i++){const h=gh(i,97),bi2=1+(h%Math.max(1,nB-1)),[wl,wr]=prof[bi2];const px=cx-wl+1+((h>>>6)%Math.max(1,Math.round((wl+wr-2)*2)))/2,py=cy-ry+bi2*bandH+((h>>>11)%2)*.5;c.fillStyle=h%3?DK:OUT;c.fillRect(px,py,1,.5);}
-      // small L-shaped leaf ticks, denser than v8: bright in the light zone, dark in the shadow zone
-      const nT=Math.max(3,Math.round(rx*ry/6));
-      for(let i=0;i<nT;i++){const h=gh(i,7),bi2=h%Math.max(1,nB-1),[wl,wr]=prof[bi2];const px=cx-wl+1+((h>>>6)%Math.max(1,Math.round((wl+wr-2)*2)))/2,py=cy-ry+bi2*bandH+((h>>>11)%2)*.5;
-        const up=bi2<nB*.45;c.fillStyle=up?(h%4===0?'#93d94e':LT):(h%3?DK:OUT);
-        if(h%2){c.fillRect(px,py,1.5,.5);c.fillRect(px,py+.5,.5,.5);}else{c.fillRect(px,py,.5,1.5);c.fillRect(px+.5,py+1,1,.5);}}
+        if(bi===0){c.fillStyle=LT;c.fillRect(x0,y0,W*.45,bandH);}
+        if(t>.85){c.fillStyle=DK;c.fillRect(x0,y0,W,bandH);}
+        else if(t>.62){c.fillStyle=DK;c.fillRect(x0+W*.45,y0,W*.55,bandH);}
+        else if(t>.4){c.fillStyle=DK;c.fillRect(x0+W*.78,y0,W*.22,bandH);}}
+      // highlight tufts: 1-2 stepped leaf shapes (3-5 units wide, >=3px forms only) hugging the top-left rim
+      const nTuft=rx>=9?2:1;
+      for(let i=0;i<nTuft;i++){const h=gh(i,7),tw=3+(h%3),tx0=cx-rx*.6+i*rx*.5+((h>>>3)%2),ty0=cy-ry+1+((h>>>5)%2);
+        c.fillStyle=LT;c.fillRect(tx0,ty0,tw,1);c.fillRect(tx0+.5,ty0+1,tw-1,1);if(tw>=4)c.fillRect(tx0+1,ty0+2,tw-2,1);}
     },
     // ---- v6 pavers: large staggered stones (16x12 logical), world-aligned so tiles seam invisibly ----
     pavers6(ctx,x,y,w,h){const M='#7d6b5d',tones=['#bca893','#c2ab8f','#b5a189'],dk='#8a755e';ctx.fillStyle=M;ctx.fillRect(x,y,w,h);
@@ -905,36 +931,37 @@
       // ---------- wavy zigzag roof: slate field + 8 gable segments, peaks rise toward the center ----------
       const peaks=[[704,44],[1088,34],[1472,24],[1856,12],[2240,12],[2624,24],[3008,34],[3392,44]];
       // stepped slate fields under each gable (tops follow the wave) so no wall shows between segments
-      for(const [cx,py] of peaks)slates(cx-192,py+16,384,122-(py+16),SL);
+      for(const [cx,py] of peaks)slates(cx-192,py+16,384,106-(py+16),SL);
       for(const [cx,py] of peaks){const halfW=192,valleyY=58;
         for(let y=py;y<valleyY;y+=6){const t=(y-py)/(valleyY-py),hw=Math.round(halfW*t);if(hw<=2)continue;R(cx-hw,y,hw*2,6,SL.md);R(cx-hw,y,Math.round(hw*.62),6,SL.lt);R(cx+Math.round(hw*.55),y,hw-Math.round(hw*.55),6,SL.dk);R(cx-hw,y+5,hw*2,1,SL.dk);}
         R(cx-3,py-2,6,4,SL.lt);}
-      R(512,118,3072,4,SL.ol);
+      R(512,102,3072,4,SL.ol);
       // dormers
-      for(const dx of [820,3020]){for(let i=0;i<4;i++){const w=44-i*9,y=76-i*7;R(dx-Math.round(w/2),y,w,7,SL.md);R(dx-Math.round(w/2),y,Math.round(w*.4),7,SL.lt);R(dx-Math.round(w/2),y+6,w,1,SL.dk);}R(dx-13,74,26,38,ST.lt);R(dx-9,78,18,26,'#7ea6d8');R(dx-9,95,18,9,'#5f83b8');R(dx-1,78,2,26,ST.lt);R(dx-17,110,34,4,ST.dk);}
-      // ---------- cornice, wall, plinth, ground fringe (v10: roof field deepened +18, wall compressed 140->110 for a more top-down read) ----------
-      R(512,122,3072,3,ST.hl);R(512,125,3072,6,ST.lt);R(512,131,3072,3,ST.dk);
-      bricks(512,132,3072,110,BR);
-      R(512,132,3072,5,'rgba(24,16,36,.30)'); // v10: hard eave shadow band under the cornice
-      R(508,242,3080,3,ST.hl);R(508,245,3080,7,ST.lt);R(508,252,3080,6,ST.md);R(508,258,3080,4,ST.dk);R(508,262,3080,2,ST.ol);
-      R(512,264,3072,10,'#356e2a');for(let gx=512;gx<3584;gx+=4)R(gx,274,2,5,'#356e2a');
+      for(const dx of [820,3020]){for(let i=0;i<4;i++){const w=44-i*9,y=64-i*7;R(dx-Math.round(w/2),y,w,7,SL.md);R(dx-Math.round(w/2),y,Math.round(w*.4),7,SL.lt);R(dx-Math.round(w/2),y+6,w,1,SL.dk);}R(dx-13,62,26,38,ST.lt);R(dx-9,66,18,26,'#7ea6d8');R(dx-9,83,18,9,'#5f83b8');R(dx-1,66,2,26,ST.lt);R(dx-17,98,34,4,ST.dk);}
+      // ---------- cornice, wall, plinth, ground fringe (v11: wall 110->90, roof field bottom 122->106, plinth bottom 264->230;
+      // building band 278 (v9) -> 264 (v10) -> 230 bake px = -17% total, inside the instruction's 15-20%) ----------
+      R(512,106,3072,3,ST.hl);R(512,109,3072,5,ST.lt);R(512,114,3072,2,ST.dk);
+      bricks(512,116,3072,90,BR);
+      R(512,116,3072,5,'rgba(24,16,36,.30)'); // v10: hard eave shadow band under the cornice
+      R(508,206,3080,3,ST.hl);R(508,209,3080,6,ST.lt);R(508,215,3080,6,ST.md);R(508,221,3080,5,ST.dk);R(508,226,3080,4,ST.ol);
+      R(512,230,3072,9,'#356e2a');for(let gx=512;gx<3584;gx+=4)R(gx,239,2,4,'#356e2a');
       // ---------- windows: tall arched, blue shutters, flower boxes ----------
       for(let gx=10;gx<=53;gx+=3){if(gx>=29&&gx<=34)continue;const fx=(gx*32+10)*2,h=hash(gx,77);
-        R(fx-28,154,18,68,SL.md);R(fx-28,154,18,2,SL.lt);for(const sy of [176,198])R(fx-28,sy,18,2,SL.dk);
-        R(fx+52,154,18,68,SL.md);R(fx+52,154,18,2,SL.lt);for(const sy of [176,198])R(fx+52,sy,18,2,SL.dk);
-        ELT(fx+21,176,27,22,ST.lt);R(fx-6,176,54,52,ST.lt);
-        ELT(fx+21,176,21,17,'#7ea6d8');R(fx,176,42,40,'#7ea6d8');R(fx,216,42,12,'#5f83b8');
-        R(fx+19,154,3,74,ST.lt);R(fx,200,42,3,ST.lt);
-        R(fx-10,228,62,6,ST.md);R(fx-10,234,62,3,BR.dk);
-        if(h%3===0){R(fx,214,42,10,'#6b4423');this.leafCluster(b,fx+10,211,9,6,hash(gx,5));this.leafCluster(b,fx+30,210,10,6,hash(gx,9));for(let q=0;q<4;q++){const hh=hash(gx+q,99);R(fx+4+q*6,207+(hh%3),3,3,q%2?'#f28bb4':'#fff0f5');}}
+        R(fx-28,132,18,64,SL.md);R(fx-28,132,18,2,SL.lt);for(const sy of [154,176])R(fx-28,sy,18,2,SL.dk);
+        R(fx+52,132,18,64,SL.md);R(fx+52,132,18,2,SL.lt);for(const sy of [154,176])R(fx+52,sy,18,2,SL.dk);
+        ELT(fx+21,152,27,20,ST.lt);R(fx-6,152,54,46,ST.lt);
+        ELT(fx+21,152,21,15,'#7ea6d8');R(fx,152,42,36,'#7ea6d8');R(fx,188,42,10,'#5f83b8');
+        R(fx+19,132,3,66,ST.lt);R(fx,174,42,3,ST.lt);
+        R(fx-10,198,62,6,ST.md);R(fx-10,204,62,3,BR.dk);
+        if(h%3===0){R(fx,186,42,10,'#6b4423');this.leafCluster(b,fx+10,183,9,6,hash(gx,5));this.leafCluster(b,fx+30,182,10,6,hash(gx,9));for(let q=0;q<4;q++){const hh=hash(gx+q,99);R(fx+4+q*6,179+(hh%3),3,3,q%2?'#f28bb4':'#fff0f5');}}
       }
       // ---------- side door niches ----------
       for(const nx of [944,2880]){const cx=nx+32;
-        ELT(cx,182,42,26,ST.md);ELT(cx,182,34,20,'#241d2b');R(cx-34,182,68,60,'#2e2733');R(cx-40,182,6,66,ST.md);R(cx+34,182,6,66,ST.dk);
-        R(cx-44,242,88,6,ST.lt);R(cx-48,248,96,6,ST.md);R(cx-5,194,10,44,'#1d1826');R(cx-5,194,2,44,'#4a4258');
+        ELT(cx,158,42,24,ST.md);ELT(cx,158,34,18,'#241d2b');R(cx-34,158,68,48,'#2e2733');R(cx-40,158,6,54,ST.md);R(cx+34,158,6,54,ST.dk);
+        R(cx-44,206,88,6,ST.lt);R(cx-48,212,96,6,ST.md);R(cx-5,170,10,36,'#1d1826');R(cx-5,170,2,36,'#4a4258');
       }
       // ---------- ivy clusters at the wall base ----------
-      for(const [vx,vy,vr] of [[790,230,20],[1060,238,16],[1320,232,18],[2380,232,18],[2680,238,16],[3320,230,20],[620,238,15],[3480,240,15]])this.leafCluster(b,vx,vy,vr,vr*.72,hash(vx,vy));
+      for(const [vx,vy,vr] of [[790,198,20],[1060,204,16],[1320,200,18],[2380,200,18],[2680,204,16],[3320,198,20],[620,204,15],[3480,206,15]])this.leafCluster(b,vx,vy,vr,vr*.72,hash(vx,vy));
       // ---------- v7 porch wave roof: 3 gables over the arches, peaks inside the start-view band ----------
       const SL2={hl:'#b8d2f2',lt:'#8fb0dd',md:'#7398cf',dk:'#5174aa',ol:'#3a5389'};
       const PR={x0:1696,x1:2400,valley:68,eave:86};
@@ -956,37 +983,38 @@
       // ---------- clock spire: sits on the porch roof, face set into its base ----------
       cone(2048,42,9,250,16,5);
       R(2047,3,2,5,'#c9a24a');R(2045,2,6,3,'#ffd94d');
-      EL(2048,62,23,23,'#c9a24a');EL(2048,62,18,18,'#f7efdb');
-      for(let q=0;q<12;q++){const a=q*Math.PI/6;R(2048+Math.round(Math.cos(a)*13)-1,62+Math.round(Math.sin(a)*13)-1,2,2,'#8a6a34');}
-      R(2047,50,2,12,'#5a4020');R(2047,60,15,2,'#5a4020');R(2046,60,4,4,'#5a4020');
+      // v11: dial raised (centre 62->50, r 23->19) so the taller central fanlight below it stays clear
+      EL(2048,50,19,19,'#c9a24a');EL(2048,50,15,15,'#f7efdb');
+      for(let q=0;q<12;q++){const a=q*Math.PI/6;R(2048+Math.round(Math.cos(a)*10)-1,50+Math.round(Math.sin(a)*10)-1,2,2,'#8a6a34');}
+      R(2047,40,2,10,'#5a4020');R(2047,48,12,2,'#5a4020');R(2046,48,4,4,'#5a4020');
       // ---------- round towers v7: smooth cylinder ramp, drooping mortar arcs, cos-spaced joints, elliptical cap/plinth ----------
       const BRramp=[[0,'#4a3d33'],[.10,'#77644e'],[.20,'#9a8468'],[.29,'#cbb693'],[.40,'#b39d7d'],[.60,'#9a8468'],[.80,'#77644e'],[.92,'#4a3d33']];
       const STramp=[[0,'#7d6b5d'],[.14,'#9b8774'],[.26,'#e8d9c7'],[.38,'#d3c0ac'],[.58,'#bca893'],[.78,'#9b8774'],[.92,'#7d6b5d']];
       for(const cxL of [1536,2560]){const tx=cxL-88;
         // shadow the tower casts on the wall to its right
-        b.save();b.globalAlpha=.28;R(tx+182,132,20,110,'#241a12');b.restore();
+        b.save();b.globalAlpha=.28;R(tx+182,116,20,90,'#241a12');b.restore();
         // ground shadow + elliptical plinth base
-        EL(cxL+8,254,102,8,'rgba(28,42,26,.40)');
-        EL(cxL,242,94,9,'#5d4c3c');
+        EL(cxL+8,218,102,8,'rgba(28,42,26,.40)');
+        EL(cxL,206,94,9,'#5d4c3c');
         // body: 4px vertical strips sampled from the cylinder ramp (light peak at ~32%)
-        for(let sx=tx;sx<tx+176;sx+=4)R(sx,120,4,122,bandAt(BRramp,(sx+2-tx)/176));
+        for(let sx=tx;sx<tx+176;sx+=4)R(sx,104,4,102,bandAt(BRramp,(sx+2-tx)/176));
         // mortar courses: horizontal lines sagging at the center + vertical joints compressed toward the edges
-        for(let by=130,ci=0;by<=238;by+=12,ci++){for(let sx=tx;sx<tx+176;sx+=2){const tt=(sx+1-tx)/176*2-1;R(sx,by+Math.round(5*(1-tt*tt)),2,1,'#6b5847');}
-          const off=(ci%2)*7.5;for(let a=-75+off;a<=75;a+=15){const jx=cxL+Math.round(86*Math.sin(a*Math.PI/180)),jt=(jx-tx)/176*2-1,sg=Math.round(5*(1-jt*jt));R(jx,by-11+sg,1,10,'#6b5847');}}
+        for(let by=112,ci=0;by<=202;by+=11,ci++){for(let sx=tx;sx<tx+176;sx+=2){const tt=(sx+1-tx)/176*2-1;R(sx,by+Math.round(5*(1-tt*tt)),2,1,'#6b5847');}
+          const off=(ci%2)*7.5;for(let a=-75+off;a<=75;a+=15){const jx=cxL+Math.round(86*Math.sin(a*Math.PI/180)),jt=(jx-tx)/176*2-1,sg=Math.round(5*(1-jt*jt));R(jx,by-10+sg,1,9,'#6b5847');}}
         // tower window
-        ELT(cxL,168,14,11,ST.lt);R(cxL-14,168,28,32,ST.lt);R(cxL-10,170,20,26,'#7ea6d8');R(cxL-10,186,20,10,'#5f83b8');R(cxL-1,170,2,26,ST.lt);R(cxL-17,200,34,4,ST.md);
+        ELT(cxL,146,14,11,ST.lt);R(cxL-14,146,28,30,ST.lt);R(cxL-10,148,20,26,'#7ea6d8');R(cxL-10,164,20,10,'#5f83b8');R(cxL-1,148,2,26,ST.lt);R(cxL-17,178,34,4,ST.md);
         // stone rings with the same cylindrical ramp; cap gets an elliptical top
-        ELT(cxL,119,95,8,ST.lt);
-        for(let sx=tx-6;sx<tx+182;sx+=4)R(sx,119,4,12,bandAt(STramp,(sx+2-(tx-6))/188));
-        R(tx-6,129,188,2,ST.dk);
-        for(let sx=tx-4;sx<tx+180;sx+=4)R(sx,182,4,9,bandAt(STramp,(sx+2-(tx-4))/184));
-        R(tx-4,182,184,2,ST.hl);
-        for(let sx=tx-6;sx<tx+182;sx+=4)R(sx,220,4,22,bandAt(STramp,(sx+2-(tx-6))/188));
-        R(tx-6,220,188,2,ST.hl);
+        ELT(cxL,103,95,8,ST.lt);
+        for(let sx=tx-6;sx<tx+182;sx+=4)R(sx,103,4,12,bandAt(STramp,(sx+2-(tx-6))/188));
+        R(tx-6,113,188,2,ST.dk);
+        for(let sx=tx-4;sx<tx+180;sx+=4)R(sx,158,4,9,bandAt(STramp,(sx+2-(tx-4))/184));
+        R(tx-4,158,184,2,ST.hl);
+        for(let sx=tx-6;sx<tx+182;sx+=4)R(sx,184,4,22,bandAt(STramp,(sx+2-(tx-6))/188));
+        R(tx-6,184,188,2,ST.hl);
         // cone roof: elliptical eave + 22 fine steps (4px) with left-light shading
-        EL(cxL,117,101,8,SL.dk);ELT(cxL,117,101,8,SL.md);
-        for(let i=0;i<22;i++){const w=200-i*7,sx=Math.round(cxL-w/2),sy=114-i*4;R(sx,sy,w,4,SL.md);R(sx,sy,Math.round(w*.44),4,SL.lt);R(sx+Math.round(w*.72),sy,w-Math.round(w*.72),4,SL.dk);if(i%3===2)R(sx,sy+3,w,1,SL.ol);for(let vx=sx+6+((i*11)%9);vx<sx+w-4;vx+=15+((i*5)%6))R(vx,sy,1,3,SL.dk);}
-        R(cxL-1,26,2,4,'#c9a24a');R(cxL-2,25,5,2,'#ffd94d');
+        EL(cxL,101,101,8,SL.dk);ELT(cxL,101,101,8,SL.md);
+        for(let i=0;i<22;i++){const w=200-i*7,sx=Math.round(cxL-w/2),sy=98-i*4;R(sx,sy,w,4,SL.md);R(sx,sy,Math.round(w*.44),4,SL.lt);R(sx+Math.round(w*.72),sy,w-Math.round(w*.72),4,SL.dk);if(i%3===2)R(sx,sy+3,w,1,SL.ol);for(let vx=sx+6+((i*11)%9);vx<sx+w-4;vx+=15+((i*5)%6))R(vx,sy,1,3,SL.dk);}
+        R(cxL-1,10,2,4,'#c9a24a');R(cxL-2,9,5,2,'#ffd94d');
       }
       // ---------- porch rebuilt: 3 grand arches, decorative pillars, deep interior ----------
       const PX0=1744,PX1=2352;
@@ -996,29 +1024,32 @@
       bricks(PX0+28,178,PX1-PX0-56,68,BR2);
       R(PX0+16,246,PX1-PX0-32,22,ST.md);R(PX0+16,246,PX1-PX0-32,2,ST.lt);
       for(let fx2=PX0+76;fx2<PX1-60;fx2+=56)R(fx2,248,2,18,ST.dk);
-      for(const [px0,px1] of [[1744,1780],[1940,1976],[2128,2164],[2316,2352]])for(let dy=0;dy<12;dy++)R(px0+6+dy,252+dy,px1-px0,1,'#8a755e');
+      for(const [px0,px1] of [[1744,1780],[1940,1976],[2128,2164],[2316,2352]])for(let dy=0;dy<16;dy++)R(px0+6+dy,252+dy,px1-px0,1,'#77644e');
       R(PX0,132,PX1-PX0,4,ST.hl);R(PX0,136,PX1-PX0,10,ST.lt);for(let dx=PX0+6;dx<PX1-10;dx+=16)R(dx,147,8,5,ST.md);R(PX0,152,PX1-PX0,4,BR.dk);
       // v9: shadow the projecting porch roof casts onto the arch band (drawn before the arches, so it survives in the spandrels)
       R(PX0,156,PX1-PX0,7,'rgba(24,16,36,.32)');
-      // v10: side arches raised; the central arch bay pierces the cornice into the roof field (Claude's protrusion grammar) so the opening reaches ~2x character body height
-      for(const cx of [1860,2236]){ELT(cx,246,84,96,ST.md);ELT(cx,246,76,88,'#2e2733');}
-      ELT(2048,246,76,148,ST.md);ELT(2048,246,68,140,'#2e2733');
+      // v11 (Chiba's decision, instruction item 2): openings raised to the 2-2.5x band — side arches 88->116 bake px (58 logical = 1.45x),
+      // central opening 140->164 bake px (82 logical = 2.05x of the ~40-logical-px character body); the bay pierces the porch roof to just under the clock
+      for(const cx of [1860,2236]){ELT(cx,246,84,124,ST.md);ELT(cx,246,76,116,'#2e2733');}
+      ELT(2048,246,76,176,ST.md);ELT(2048,246,68,164,'#2e2733');
       const pillar=(x0,w)=>{R(x0-5,158,w+10,4,ST.hl);R(x0-5,162,w+10,6,ST.lt);R(x0-3,168,w+6,5,ST.md);R(x0-1,173,w+2,3,'#c9a24a');
         R(x0,176,w,62,ST.md);R(x0,176,5,62,ST.lt);R(x0+1,176,1,62,ST.hl);R(x0+w-6,176,6,62,ST.dk);
         for(let fx3=x0+9;fx3<x0+w-7;fx3+=8){R(fx3,180,1,54,ST.dk);R(fx3+1,180,1,54,ST.lt);}
         R(x0-4,238,w+8,5,ST.md);R(x0-4,243,w+8,6,ST.dk);R(x0-4,249,w+8,3,ST.ol);};
       pillar(1744,36);pillar(1940,36);pillar(2128,36);pillar(2316,36);
-      ELT(2048,150,58,30,ST.lt);ELT(2048,150,50,23,'#7ea6d8');R(2046,128,4,22,ST.lt);
-      R(1992,146,4,116,'#1d1826');R(2100,146,4,116,'#1d1826');
-      R(1996,148,104,114,'#6b4423');R(1996,148,50,114,'#7d5230');R(2050,148,50,114,'#54331a');
-      R(2006,164,32,36,'#54331a');R(2058,164,32,36,'#3f2716');R(2006,208,32,36,'#54331a');R(2058,208,32,36,'#3f2716');
-      R(2041,222,5,7,'#ffd94d');R(2050,222,5,7,'#ffd94d');
+      // v11: great door enlarged 114->176 bake px tall (88 logical = 2.2x character body), fanlight moved up with it
+      ELT(2048,88,58,26,ST.lt);ELT(2048,88,50,20,'#7ea6d8');R(2046,70,4,18,ST.lt);
+      R(1992,88,4,174,'#1d1826');R(2100,88,4,174,'#1d1826');
+      R(1996,86,104,176,'#6b4423');R(1996,86,50,176,'#7d5230');R(2050,86,50,176,'#54331a');
+      R(2006,106,32,46,'#54331a');R(2058,106,32,46,'#3f2716');R(2006,198,32,46,'#54331a');R(2058,198,32,46,'#3f2716');
+      R(2041,182,5,7,'#ffd94d');R(2050,182,5,7,'#ffd94d');
       for(const lx of [1954,2142]){R(lx-6,166,12,3,'#4a3a28');R(lx-4,169,8,12,'#ffe9a8');R(lx-6,181,12,3,'#4a3a28');}
       for(let i=0;i<3;i++){const w=640+i*36,sx=2048-Math.round(w/2),sy=276+i*13;R(sx,sy,w,3,ST.hl);R(sx,sy+3,w,6,ST.lt);R(sx,sy+9,w,4,ST.dk);}
+      R(1702,315,712,5,'rgba(28,42,26,.30)'); // v11: baked ground shadow the steps cast onto the plaza
       b.restore();
     },
-    buildCastleShadows(){const c=document.createElement('canvas');c.width=this.mapBase.width;c.height=this.mapBase.height;const x=c.getContext('2d');x.setTransform(SS,0,0,SS,0,0);x.fillStyle='#33503e';const cast=(a,b,y,dx,dy)=>{x.beginPath();x.moveTo(a,y);x.lineTo(b,y);x.lineTo(b+dx,y+dy);x.lineTo(a+dx,y+dy);x.closePath();x.fill();};cast(256,1792,140,48,24);cast(724,812,140,38,18);cast(1236,1324,140,38,18);cast(864,1184,158,24,10);for(const px of [872,966,1060,1154])cast(px,px+22,158,12,7);for(const [gx,gy] of (this.bigTrees||[])){x.beginPath();x.ellipse(gx*32+16+10,gy*32+30,30,9,0,0,Math.PI*2);x.fill();}for(const [gx,gy] of this.TREES){x.beginPath();x.ellipse(gx*32+16+25,gy*32+16+16,20,8,0,0,Math.PI*2);x.fill();}for(let gy=0;gy<this.mapH();gy++)for(let gx=0;gx<this.mapW();gx++){const k=this.tiles[gy][gx];if(k==='hedge'&&this.tiles[gy+1]?.[gx]!=='hedge')x.fillRect(gx*32+3,gy*32+29,30,6);else if(k==='bench')x.fillRect(gx*32+4,gy*32+23,28,6);else if(k==='plant'){x.beginPath();x.ellipse(gx*32+19,gy*32+29,10,4,0,0,Math.PI*2);x.fill();}}x.beginPath();x.ellipse(1024+22,452,11,4,.55,0,Math.PI*2);x.fill();this.shadowLayer=c;},
-    drawEdges(b){const stone=new Set(['stone','path']);for(let y=0;y<this.mapH();y++)for(let x=0;x<this.mapW();x++){const k=this.tiles[y][x],px=x*32,py=y*32;if(stone.has(k)){for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]])if(this.tiles[y+dy]?.[x+dx]==='grass'){b.fillStyle='#7d6b5d';b.fillRect(px+(dx===1?31:dx===-1?0:0),py+(dy===1?31:0),32,1);for(let q=0;q<4;q++){const th=((x*73856093^y*19349663^q*40503)>>>0);b.fillStyle=['#1c4a26','#2f6b34','#4f8f3a'][q%3];b.fillRect(px+(th%29),py+(dy===-1?0:dy===1?28:((th>>>5)%30)),3,5);}}}if(k==='water'&&y>0&&this.tiles[y-1][x]!=='water'){b.fillStyle='#7d6b5d';b.fillRect(px,py,32,6);b.fillStyle='#cfefff';b.fillRect(px,py,32,1);}}},
+    buildCastleShadows(){const c=document.createElement('canvas');c.width=this.mapBase.width;c.height=this.mapBase.height;const x=c.getContext('2d');x.setTransform(SS,0,0,SS,0,0);x.fillStyle='#33503e';const cast=(a,b,y,dx,dy)=>{x.beginPath();x.moveTo(a,y);x.lineTo(b,y);x.lineTo(b+dx,y+dy);x.lineTo(a+dx,y+dy);x.closePath();x.fill();};cast(256,1792,140,48,24);cast(724,812,140,38,18);cast(1236,1324,140,38,18);cast(864,1184,158,30,16);for(const px of [872,966,1060,1154])cast(px,px+22,158,16,13);for(const [gx,gy] of (this.bigTrees||[])){x.beginPath();x.ellipse(gx*32+16+10,gy*32+30,30,9,0,0,Math.PI*2);x.fill();}for(const [gx,gy] of this.TREES){x.beginPath();x.ellipse(gx*32+16+25,gy*32+16+16,20,8,0,0,Math.PI*2);x.fill();}for(let gy=0;gy<this.mapH();gy++)for(let gx=0;gx<this.mapW();gx++){const k=this.tiles[gy][gx];if(k==='hedge'&&this.tiles[gy+1]?.[gx]!=='hedge')x.fillRect(gx*32+3,gy*32+29,30,6);else if(k==='bench')x.fillRect(gx*32+4,gy*32+23,28,6);else if(k==='plant'){x.beginPath();x.ellipse(gx*32+19,gy*32+29,10,4,0,0,Math.PI*2);x.fill();}}x.beginPath();x.ellipse(1024+22,452,11,4,.55,0,Math.PI*2);x.fill();this.shadowLayer=c;},
+    drawEdges(b){const stone=new Set(['stone','path']);for(let y=0;y<this.mapH();y++)for(let x=0;x<this.mapW();x++){const k=this.tiles[y][x],px=x*32,py=y*32;if(stone.has(k)){for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]])if(this.tiles[y+dy]?.[x+dx]==='grass'){b.fillStyle='#7d6b5d';b.fillRect(px+(dx===1?31:dx===-1?0:0),py+(dy===1?31:0),32,1);}} /* v11: grass-blade spill onto stone removed — it read as stray green dots scattered over the paths (both v10 reviews) */if(k==='water'&&y>0&&this.tiles[y-1][x]!=='water'){b.fillStyle='#7d6b5d';b.fillRect(px,py,32,6);b.fillStyle='#cfefff';b.fillRect(px,py,32,1);}}},
     applyBlur(){ if(this.fg) this.fg.closest('#world-frame').classList.toggle('no-blur',!this.settings.blur); },
     drawTitleArt(){const c=$('title-art'),x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,540);g.addColorStop(0,'#101a36');g.addColorStop(.62,'#9a5862');g.addColorStop(1,'#f2a566');x.fillStyle=g;x.fillRect(0,0,960,540);for(let i=0;i<70;i++){x.fillStyle=`rgba(255,240,200,${.3+(i%4)*.1})`;x.fillRect((i*137)%960,(i*71)%260,2,2);}x.fillStyle='#f9dda0';x.beginPath();x.arc(760,115,38,0,7);x.fill();x.fillStyle='#20243a';x.fillRect(0,365,960,175);for(const [bx,by,bw,bh] of [[120,250,170,180],[320,210,150,220],[500,270,180,160],[690,190,170,230]]){x.fillRect(bx,by,bw,bh);x.fillRect(bx+35,by-60,bw-70,60);x.beginPath();x.moveTo(bx+20,by-60);x.lineTo(bx+bw/2,by-120);x.lineTo(bx+bw-20,by-60);x.fill();for(let wx=bx+35;wx<bx+bw-15;wx+=42){x.fillStyle='#ffc979';x.fillRect(wx,by+35,12,20);}x.fillStyle='#20243a';}x.fillStyle='#11182b';x.fillRect(0,480,960,60);},
     animate(t=0){const dt=Math.min(.05,(t-(this.lastFrame||t))/1000);this.lastFrame=t;this.animTime=(this.animTime||0)+dt*60;this.update(dt);this.draw();requestAnimationFrame(v=>this.animate(v));},
@@ -1060,26 +1091,42 @@
         else if(kind==='glass'){ctx.fillStyle='#4a3b2c';ctx.fillRect(x,y,32,32);ctx.fillStyle='#5d4a34';ctx.fillRect(x+2,y+2,28,28);for(let q=0;q<4;q++){const px=x+5+((seed+q*7)%20),py=y+6+((seed>>>3+q*5)%18);ctx.fillStyle='#2c6e35';ctx.beginPath();ctx.arc(px,py,4+(q%2)*2,0,Math.PI*2);ctx.fill();ctx.fillStyle='#3a7d2c';ctx.beginPath();ctx.arc(px+1,py+2,3+(q%2),0,Math.PI*2);ctx.fill();}ctx.fillStyle='#b0563a';ctx.fillRect(x+22,y+22,5,4);ctx.fillStyle=gy<26?'rgba(127,184,176,.13)':'rgba(127,184,176,.17)';ctx.fillRect(x,y,32,32);if(seed%3===0){ctx.fillStyle='rgba(255,255,255,.25)';ctx.beginPath();ctx.moveTo(x+4,y+26);ctx.lineTo(x+14,y+6);ctx.lineTo(x+20,y+6);ctx.lineTo(x+10,y+26);ctx.closePath();ctx.fill();}ctx.strokeStyle='#3a4a48';ctx.lineWidth=2;ctx.strokeRect(x+1,y+1,30,30);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x+16,y);ctx.lineTo(x+16,y+32);ctx.stroke();if(gy===26){ctx.fillStyle='rgba(207,216,210,.5)';ctx.fillRect(x,y+15,32,2);}}
         else if(kind==='bench'){ctx.fillStyle='#9b8774';ctx.fillRect(x+3,y+24,28,3);ctx.fillStyle='#5a3a22';ctx.fillRect(x+4,y+19,4,6);ctx.fillRect(x+24,y+19,4,6);ctx.fillStyle='#8a613c';ctx.fillRect(x+2,y+15,28,5);ctx.fillStyle='#77644e';ctx.fillRect(x+2,y+19,28,1);ctx.fillStyle='#d8b183';ctx.fillRect(x+2,y+11,28,4);ctx.fillStyle='#e8d9c7';ctx.fillRect(x+2,y+11,28,1);}
         else if(kind==='plant'){ctx.fillStyle='#9b8774';ctx.fillRect(x+9,y+28,16,2);ctx.fillStyle='#8a4a30';ctx.fillRect(x+9,y+19,14,9);ctx.fillStyle='#5d3220';ctx.fillRect(x+9,y+27,14,1);ctx.fillStyle='#b0563a';ctx.fillRect(x+8,y+17,16,3);ctx.fillStyle='#d88a68';ctx.fillRect(x+8,y+17,16,1);this.leafCluster(ctx,x+16,y+9,11,8,seed+77);}
-        else if(kind==='hedge'){// v9: seam-free hedge — dark edges only where the neighbour is not hedge, world-aligned top steps, bumpy leaf top
+        else if(kind==='hedge'){// v11: hedge as stacked leaf masses — lit top surface (~1/3 of height), front of 8-unit masses
+          // split by dark seams, dark foot band. Everything stays inside the tile (v10's overhang dropped green dots on paths).
           const hUp=this.tiles[gy-1]?.[gx]!=='hedge',hDn=this.tiles[gy+1]?.[gx]!=='hedge',hLf=this.tiles[gy]?.[gx-1]!=='hedge',hRt=this.tiles[gy]?.[gx+1]!=='hedge';
           const wxh=(n)=>(((gx*8+n)*2654435761^(gy*40503))>>>0);
-          for(let cx0=0;cx0<32;cx0+=4){const ci=cx0/4,h=wxh(ci),lift=hUp?h%3:0,ty0=y-4+lift,H=36-lift;
-            ctx.fillStyle=LFt.ol;ctx.fillRect(x+cx0,ty0,4,H);
-            ctx.fillStyle=LFt.dk;ctx.fillRect(x+cx0,ty0+1,4,H-1);
-            ctx.fillStyle=LFt.md;ctx.fillRect(x+cx0,ty0+(hUp?6:3),4,hUp?17:22);
-            if(hUp){ctx.fillStyle=LFt.lt;ctx.fillRect(x+cx0,ty0+1,4,3);if(h%3!==0){ctx.fillStyle='#93d94e';ctx.fillRect(x+cx0,ty0,4,1);}}
-            if(hUp&&(h>>>4)%3===0){ctx.fillStyle=(h>>>6)%2?LFt.lt:LFt.md;ctx.fillRect(x+cx0+1,ty0-1,2,1);}
-            if(hUp&&(h>>>8)%4===0){ctx.fillStyle=LFt.ol;ctx.fillRect(x+cx0+2,ty0+1,1,1);}}
-          for(let i=0;i<8;i++){const h=hx2(i+70);ctx.fillStyle=i%3===0?LFt.ol:(i%2?LFt.md:LFt.lt);const tx2=x+2+(h%27),ty2=y+8+((h>>>8)%18);if(h%2)ctx.fillRect(tx2,ty2,2,.5);else ctx.fillRect(tx2,ty2,.5,2);}
-          if(hDn){ctx.fillStyle='#0f2a17';ctx.fillRect(x,y+29,32,2);ctx.fillStyle='#356e2a';ctx.fillRect(x+2,y+31,28,1);}
-          if(hRt){ctx.fillStyle='#0f2a17';ctx.fillRect(x+30,y-2,2,34);}
-          if(hLf){ctx.fillStyle='#0f2a17';ctx.fillRect(x,y-2,1,34);}}
-        else if(kind==='flowerbed'){ctx.fillStyle='#2c5a24';ctx.fillRect(x,y,32,32);for(let i=0;i<14;i++){const h=hx2(i+220);ctx.fillStyle=h%2?'#3a702c':'#478236';ctx.fillRect(x+2+(h%26),y+2+((h>>>8)%26),3,2);}for(let i=0;i<10;i++){const h=hx2(i+80);ctx.fillStyle='#1f4420';ctx.fillRect(x+2+(h%27),y+2+((h>>>8)%27),2,1);}
-        // v7: flowers in tight bunches on a green mat (each with a dark-green drop shadow) so pink reads as patches, not dots on soil
-        const fc7=['#f28bb4','#f49ac1','#ff9fc6','#ef7fae'];const putFlower=(fx,fy,h)=>{const big=h%5===0,s=big?3:2;ctx.fillStyle='#1f4420';ctx.fillRect(fx+1,fy+1,s,s);ctx.fillStyle=h%11===0?'#fff0f5':h%13===0?'#ffd94d':fc7[h%4];ctx.fillRect(fx,fy,s,s);if(big){ctx.fillStyle='#fff3b0';ctx.fillRect(fx,fy,.5,.5);}};
-        // v9: bunch count/radius/centres vary per tile (world-seeded) so the beds stop reading as a lattice
-        const nbF=7+(hx2(999)%6);for(let bn=0;bn<nbF;bn++){const hb=hx2(bn*17+500),bcx=x+3+(hb%27),bcy=y+3+((hb>>>8)%27),rad=2+((hb>>>13)%5),nf=3+((hb>>>5)%5);for(let q=0;q<nf;q++){const h=hx2(bn*31+q+600);putFlower(bcx-rad+((h>>>3)%(rad*2+1)),bcy-rad+((h>>>9)%(rad*2+1)),h);}}
-        for(let i=0;i<8;i++){const h=hx2(i+700);putFlower(x+2+(h%27),y+2+((h>>>8)%27),h);}const edge=(dx,dy)=>this.tiles[gy+dy]?.[gx+dx]!=='flowerbed'&&this.tiles[gy+dy]?.[gx+dx]!=='hedge';if(edge(0,-1)){ctx.fillStyle='#e8d9c7';ctx.fillRect(x,y,32,1);ctx.fillStyle='#d3c0ac';ctx.fillRect(x,y+1,32,1);ctx.fillStyle='#bca893';ctx.fillRect(x,y+2,32,2);ctx.fillStyle='#9b8774';ctx.fillRect(x,y+4,32,1);}if(edge(0,1)){ctx.fillStyle='#d3c0ac';ctx.fillRect(x,y+27,32,2);ctx.fillStyle='#bca893';ctx.fillRect(x,y+29,32,2);ctx.fillStyle='#7d6b5d';ctx.fillRect(x,y+31,32,1);}if(edge(-1,0)){ctx.fillStyle='#d3c0ac';ctx.fillRect(x,y,2,32);ctx.fillStyle='#9b8774';ctx.fillRect(x+2,y,1,32);}if(edge(1,0)){ctx.fillStyle='#bca893';ctx.fillRect(x+29,y,3,32);ctx.fillStyle='#7d6b5d';ctx.fillRect(x+31,y,1,32);}}
+          ctx.fillStyle=LFt.dk;ctx.fillRect(x,y,32,32);
+          for(let sx0=0;sx0<32;sx0+=16){const ci=sx0/16+(gx%2)*2,h=wxh(ci),step=hUp?(h%2)*2:0,topY=y+step;
+            if(hUp){ // lit top surface with a bright front lip and a step shadow where the neighbour mass sits lower
+              ctx.fillStyle=LFt.ol;ctx.fillRect(x+sx0,topY,16,2);
+              ctx.fillStyle=LFt.lt;ctx.fillRect(x+sx0,topY+2,16,3);
+              ctx.fillStyle=LFt.md;ctx.fillRect(x+sx0,topY+5,16,5);
+              ctx.fillStyle=LFt.dk;ctx.fillRect(x+sx0,topY+10,16,2);
+            } else { ctx.fillStyle=LFt.md;ctx.fillRect(x+sx0,y,16,12); }
+            // front face: mid mass with a darker lower half; one soft seam shadow per 16px mass (8px masses striped like a fence)
+            ctx.fillStyle=LFt.md;ctx.fillRect(x+sx0,(hUp?topY+12:y+12),16,9);
+            ctx.fillStyle=LFt.dk;ctx.fillRect(x+sx0,y+21,16,8);
+            ctx.fillStyle=LFt.ol;ctx.fillRect(x+sx0-1,(hUp?topY+10:y+6),2,19); // seam at every mass boundary (incl. tile edges)
+          }
+          if(hDn){ctx.fillStyle='#0f2a17';ctx.fillRect(x,y+29,32,3);}
+          if(hRt){ctx.fillStyle='#0f2a17';ctx.fillRect(x+30,y,2,32);}
+          if(hLf){ctx.fillStyle='#0f2a17';ctx.fillRect(x,y,2,32);}}
+        else if(kind==='flowerbed'){// v11: flat dark-green bed (no dot scatter) + 2-3 flower clusters per tile.
+          // Each cluster = dark leaf blob with 3x3 flowers (pale 1px centre), spaced so the green ground still reads.
+          ctx.fillStyle='#2c5a24';ctx.fillRect(x,y,32,32);
+          for(let i=0;i<2;i++){const h=hx2(i+220);ctx.fillStyle='#26592a';ctx.fillRect(x+3+(h%18),y+4+((h>>>8)%20),9,5);}
+          const fc7=['#f28bb4','#ef7fae'];
+          const cluster=(ccx,ccy,h0)=>{this.v4Ellipse(ctx,ccx,ccy,6,4,'#1f4420');this.v4Ellipse(ctx,ccx,ccy-1,5,3,'#356e2a');
+            const offs=[[-3,-2],[1,-3],[3,0],[-1,1]];
+            for(let q=0;q<4;q++){const h=hx2(h0+q*13),fx=ccx+offs[q][0]-1,fy=ccy+offs[q][1]-1;
+              ctx.fillStyle=h%11===0?'#ffd94d':fc7[h%2];ctx.fillRect(fx,fy,3,3);ctx.fillStyle='#fff3b0';ctx.fillRect(fx+1,fy+1,1,1);}};
+          const nc=2+(hx2(999)%2);
+          for(let bn=0;bn<nc;bn++){const hb=hx2(bn*17+500);cluster(x+8+(hb%17),y+8+((hb>>>8)%16),bn*31+600);}
+          const edge=(dx,dy)=>this.tiles[gy+dy]?.[gx+dx]!=='flowerbed'&&this.tiles[gy+dy]?.[gx+dx]!=='hedge';
+          if(edge(0,-1)){ctx.fillStyle='#e8d9c7';ctx.fillRect(x,y,32,1);ctx.fillStyle='#bca893';ctx.fillRect(x,y+1,32,1);ctx.fillStyle='#7d6b5d';ctx.fillRect(x,y+2,32,1);}
+          if(edge(0,1)){ctx.fillStyle='#bca893';ctx.fillRect(x,y+29,32,2);ctx.fillStyle='#7d6b5d';ctx.fillRect(x,y+31,32,1);}
+          if(edge(-1,0)){ctx.fillStyle='#d3c0ac';ctx.fillRect(x,y,2,32);ctx.fillStyle='#7d6b5d';ctx.fillRect(x+2,y,1,32);}
+          if(edge(1,0)){ctx.fillStyle='#bca893';ctx.fillRect(x+29,y,2,32);ctx.fillStyle='#7d6b5d';ctx.fillRect(x+31,y,1,32);}}
         else if(kind==='wall'){this.v4Bricks(ctx,x,y,32,32,BRt);}
         else if(kind==='training'){ctx.fillStyle='#c2a878';ctx.fillRect(x,y,32,32);for(let i=0;i<10;i++){const h=hx2(i+300);ctx.fillStyle=h%3?'#9b8774':'#e8d9c7';ctx.fillRect(x+(h%29),y+((h>>>8)%30),2,1);}}
         return;
