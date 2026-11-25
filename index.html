@@ -962,7 +962,7 @@
         for(let dy=-Math.ceil(tryy);dy<Math.ceil(tryy);dy++){const yy=ty+dy,hwT=trx*Math.sqrt(Math.max(0,1-(dy/tryy)*(dy/tryy)));if(hwT<1)continue;
           const hwS=silh(yy-cy);if(hwS<1)continue;
           const xa=Math.max(tx-hwT,cx-hwS),xb=Math.min(tx+hwT,cx+hwS);if(xb<=xa)continue;
-          if(dy<-tryy*.15){c.fillStyle=LT;c.fillRect(xa,yy,(xb-xa)*.72,1);}
+          if(dy<-tryy*.15){const wCap=xb-xa;if(wCap>=5){c.fillStyle=LT;c.fillRect(xa+1,yy,Math.round((wCap-1)*.62),1);}} // v20: lace-fringe trim (Claude v19: LT caps on rim tufts made the crown outline flicker like lace) — caps now need a >=5-wide interior row, are inset 1, and cover .62 instead of .72
           else if(dy>tryy*.55){c.fillStyle=DK;c.fillRect(xa,yy,xb-xa,1);}}}
     },
     // ---- v6 pavers: large staggered stones (16x12 logical), world-aligned so tiles seam invisibly ----
@@ -1114,7 +1114,7 @@
       // (#36486e Y71 vs md Y95) + staggered vertical seam ticks. The south slope and the gable
       // triangles are drawn after this and paint over everything below the wave silhouette,
       // so the courses survive only where the back slope is actually visible.
-      for(const cy of [20,32,44])R(512,cy,3072,2,'#36486e');
+      for(const cy of [20,32,44])R(512,cy,3072,2,'#364874'); // v20: unified to the v17 south-slope course value (#36486e -> #364874, same ~delta27 step)
       for(let bx=536;bx<3584;bx+=96)R(bx,22,2,8,'#36486e');
       for(let bx=584;bx<3584;bx+=96)R(bx,34,2,8,'#36486e');
       R(512,52,3072,10,SLN.dk);
@@ -1134,6 +1134,7 @@
       // moved to slate blue-grey so the slope stops reading as night sky.
       for(let x=512;x<3584;x+=2){const t=roofTop(x);
         for(const cy of [74,88])if(cy>t+10)R(x,cy,2,2,'#364874');
+        if(62>t+2)R(x,62,2,2,'#364874'); // v20: one more course in the upper plane (12px pitch, same value — Claude v19: the upper half was one flat band; keep it thin, do not re-densify)
         R(x,112,2,2,'#24325a');R(x,126,2,2,'#24325a');}
       for(let bx=536;bx<3584;bx+=96)R(bx,102,2,8,'#24325a');
       for(let bx=584;bx<3584;bx+=96)R(bx,114,2,10,'#24325a');
@@ -1141,7 +1142,7 @@
       for(let bx=584;bx<3584;bx+=96)if(roofTop(bx)<80)R(bx,90,2,8,'#364874');
       // gable triangles: flat 3-tone split, NO per-step lines (v16: 2px steps, finer silhouette)
       for(const [cx,py] of peaks){const halfW=192,valleyY=58;
-        for(let y=py;y<valleyY;y+=2){const t=(y-py)/(valleyY-py),hw=Math.round(halfW*t);if(hw<=2)continue;R(cx-hw,y,hw*2,2,SL.md);R(cx-hw,y,Math.round(hw*.62),2,SL.lt);R(cx+Math.round(hw*.55),y,hw-Math.round(hw*.55),2,SL.dk);}
+        for(let y=py;y<valleyY;y+=2){const t=(y-py)/(valleyY-py),hw=Math.round(halfW*t);if(hw<=2)continue;const jt=(t>=.5&&t<.6);R(cx-hw,y,hw*2,2,SL.md);R(cx-hw,y,Math.round(hw*.62),2,jt?SL.md:SL.lt);R(cx+Math.round(hw*.55),y,hw-Math.round(hw*.55),2,jt?SL.ol:SL.dk);} // v20: one quiet joint band halfway down each gable (faces step down one tone) — a material cue in the flattest faces, no new colours
         R(cx-3,py-2,6,4,SL.lt);}
       // valley lines: one dark line down each bay boundary — the slope reads as 8 large planes
       for(let vx=896;vx<3584;vx+=384){R(vx-1,58,2,40,SL.ol);R(vx-1,100,2,38,SL.ol);}
@@ -1174,7 +1175,7 @@
       R(512,246,3072,6,'rgba(24,16,36,.30)'); // shadow under the slab lip
       for(let gx=8;gx<56;gx++){const bx=gx*64,pv=(((gx>>2)*31+57)>>>0)%4; // ground apron, tile by tile (v15: same 4x4-block, narrowed-tone grass as drawTile)
         if(gx>=24&&gx<40){R(bx,270,64,50,'#bca893');R(bx,286,64,2,'#a5906f');R(bx,302,64,2,'#a5906f');R(bx+((gx*13)%29),270,2,50,'#a5906f');} // plaza stone beside the steps
-        else{R(bx,270,64,50,['#5fa83c','#62a840','#5da53b','#5fa83c'][pv]);for(let q=0;q<3;q++){const hh=hash(gx*3+q,271);R(bx+2+(hh%27)*2,274+((hh>>>8)%42),2,3,'#2f6b2b');R(bx+3+(hh%27)*2,273+((hh>>>8)%42),1,1,'#7fc645');}}} // grass matching the tile grammar
+        else{R(bx,270,64,50,['#5fa83c','#61a73f','#5ea63b','#5fa83c'][pv]);for(let q=0;q<3;q++){const hh=hash(gx*3+q,271);R(bx+2+(hh%27)*2,274+((hh>>>8)%42),2,3,'#2f6b2b');R(bx+3+(hh%27)*2,273+((hh>>>8)%42),1,1,'#7fc645');}}} // grass matching the tile grammar (v20: tones narrowed in step with drawTile)
       // ---------- windows: v13 squashed for the top-down wall (64 -> 46 bake px tall, arch top y160, sill y196) ----------
       for(let gx=10;gx<=53;gx+=3){if(gx>=29&&gx<=34)continue;const fx=(gx*32+10)*2,h=hash(gx,77);
         R(fx-28,160,18,36,SL.md);R(fx-28,160,18,2,SL.lt);for(const sy of [172,184])R(fx-28,sy,18,2,SL.dk);
@@ -1208,27 +1209,30 @@
       // left face lt, right face md, split by a ridge pair (hl left / dk right of the centre
       // column) running from the peak straight down to the eave; 2px valley lines (ol) separate
       // the three units; field courses run parallel to the eave segments and break at both lines.
+      // (v20: the ridge pair, courses, seams and stone slope trim were all removed again in the
+      // flat-fill conversion below — see the v20 note at the gable loop. The folded-face split
+      // and the valley/eave geometry from v17 remain.)
       const PR={x0:1696,x1:2400,valley:54,eave:104};
       const PG=[1813,2048,2282];
+      // v20 FLAT-FILL conversion (Claude v19's top item-4 fix: the porch faces still read as a
+      // rendered / glass surface — slanted course lines + vertical seams + a ridge PAIR + stone
+      // trim dashes along the gable slopes + gold finial dots). The porch now uses the main
+      // roof's grammar: each face is ONE flat tone (lt left / md right), the only highlight is
+      // a single 1px ridge line (hl), edges and valleys are flat ol, the fascia keeps dk.
+      // Working colours on the faces: lt / md / dk / ol + the 1px hl ridge. Geometry (peaks,
+      // valley, eave zigzag, fascia, cast shadow) is unchanged from v13-v19.
       for(const pcx of PG){const halfW=118,py=32;
-        for(let y=py;y<PR.valley;y+=3){const t=(y-py)/(PR.valley-py),hw=Math.round(halfW*t);if(hw<=2)continue;R(pcx-hw,y,hw-1,3,SL2.lt);R(pcx-1,y,1,3,SL2.hl);R(pcx,y,1,3,SL2.dk);R(pcx+1,y,hw-1,3,SL2.md);R(pcx-hw,y,2,3,ST.hl);R(pcx-hw+2,y,1,3,ST.dk);R(pcx+hw-2,y,2,3,ST.md);R(pcx+hw-3,y,1,3,ST.ol);}
-        R(pcx-3,py-3,6,3,ST.lt);R(pcx-1,py-5,2,2,'#d9b45c');} // v16: finial gold dulled (#ffd94d sparkled like a star at game scale, v15 Claude)
+        for(let y=py;y<PR.valley;y+=3){const t=(y-py)/(PR.valley-py),hw=Math.round(halfW*t);if(hw<=2)continue;R(pcx-hw,y,hw,3,SL2.lt);R(pcx,y,hw,3,SL2.md);R(pcx,y,1,3,SL2.hl);R(pcx-hw,y,2,3,SL2.ol);R(pcx+hw-2,y,2,3,SL2.ol);}
+        R(pcx-3,py-3,6,3,SL2.dk);} // v20: peak cap in flat dk (was stone + a gold dot — the last dot highlight on the porch)
       // v9: the field's lower edge zigzags with the gables (deepest under each gable centre, rising at the valleys)
       const eaveAt=(x)=>{let bot=70;for(const pcx of PG){const d=Math.abs(x-pcx);if(d<118)bot=Math.max(bot,104-Math.round(d*34/118));}return bot;};
-      // field: the same two faces continued below the valley line, per 2px column
+      // field: the same two flat faces continued below the valley line, per 2px column
+      // (v20: the v17/v18 slanted courses and vertical seams are GONE — flat fill only)
       for(let x=PR.x0;x<PR.x1;x+=2){let pcx=null,bd=1e9;for(const c of PG){const d=Math.abs(x+1-c);if(d<118&&d<bd){bd=d;pcx=c;}}
         if(pcx===null)continue;const bot=eaveAt(x);
-        R(x,PR.valley,2,bot-PR.valley,x+1<pcx?SL2.lt:SL2.md);
-        // slanted courses parallel to the eave segments, one step darker than each face,
-        // broken at the valley lines and at the ridge pair (a continuous V would read as a band)
-        if(![1930,2165].some(vx=>Math.abs(x-vx)<5)&&Math.abs(x+1-pcx)>=4)
-          for(const off of [13,26]){const cy=bot-off;if(cy>=PR.valley+4)R(x,cy,2,2,x+1<pcx?SL2.md:SL2.dk);}}
-      // ridge pairs continued through the field, peak to eave
-      for(const pcx of PG){R(pcx-1,PR.valley,1,PR.eave-PR.valley,SL2.hl);R(pcx,PR.valley,1,PR.eave-PR.valley,SL2.dk);}
-      // v18: vertical tile seams, 2 per face (Claude v17: the faces were near-solid flat fills
-      // with no tile grain). One step darker than each face, from the valley line down to the
-      // eave, following eaveAt like the courses do.
-      for(const pcx of PG)for(const so of [-84,-44,44,84]){const sx=pcx+so;R(sx,PR.valley,2,eaveAt(sx)-PR.valley,so<0?SL2.md:SL2.dk);}
+        R(x,PR.valley,2,bot-PR.valley,x+1<pcx?SL2.lt:SL2.md);}
+      // the single ridge line continued through the field, peak to eave
+      for(const pcx of PG)R(pcx,PR.valley,1,PR.eave-PR.valley,SL2.hl);
       // valley lines: the three gables become three separate roof units
       for(const vx of [1929,2164])R(vx,PR.valley,2,eaveAt(vx+1)-PR.valley,SL2.ol);
       // v9: stone trim following the zigzag eave (stepped per 4px column), with dark end caps — the target's eave is a folded ribbon, not a straight board
@@ -1283,7 +1287,7 @@
         // pitch + seam ticks every ~15px). Course line now every 4th step (16px pitch, close to
         // the main roof's ~14px courses) and seam ticks spaced ~22px, so all three roofs carry a
         // similar line density. The 24-step silhouette and 3-tone banding are unchanged.
-        for(let i=0;i<24;i++){const w=204-i*7,sx=Math.round(cxL-w/2),sy=104-i*4;R(sx,sy,w,4,SL.md);R(sx,sy,Math.round(w*.44),4,SL.lt);R(sx+Math.round(w*.72),sy,w-Math.round(w*.72),4,SL.dk);R(sx,sy,2,4,SL.md);R(sx+w-2,sy,2,4,SL.ol);if(i%4===3)R(sx,sy+3,w,1,SL.ol);for(let vx=sx+6+((i*11)%9);vx<sx+w-4;vx+=22+((i*5)%8))R(vx,sy,1,3,SL.dk);} // v19: silhouette edges one step darker per side (left lt->md, right dk->ol) — with the main roof lifted in v18 the cone melted into it (Claude v18)
+        for(let i=0;i<24;i++){const w=204-i*7,sx=Math.round(cxL-w/2),sy=104-i*4;R(sx,sy,w,4,SL.md);R(sx,sy,Math.round(w*.44),4,SL.lt);R(sx+Math.round(w*.72),sy,w-Math.round(w*.72),4,SL.dk);R(sx,sy,2,4,SL.md);R(sx+w-2,sy,2,4,SL.ol);if(i<10){R(sx+w-3,sy,1,4,SL.ol);R(sx+w,sy,1,4,'#6a7fac');}if(i%4===3)R(sx,sy+3,w,1,SL.ol);for(let vx=sx+6+((i*11)%9);vx<sx+w-4;vx+=22+((i*5)%8))R(vx,sy,1,3,SL.dk);} // v19: silhouette edges one step darker per side (left lt->md, right dk->ol) — with the main roof lifted in v18 the cone melted into it (Claude v18). v20: the lower-right edge still melted slightly into the roof's dark plane (Claude v19, right tower) — lowest 10 steps get a 3px ol edge plus a 1px ridge-cap-tone line (#6a7fac) just outside the silhouette on the roof side, per Claude's alternative prescription
         R(cxL-1,7,2,5,'#c9a24a');R(cxL-2,5,5,2,'#d9b45c'); // v16: finial gold dulled (star misread)
       }
       // v12 arch interior: a clipped scene inside each opening — brightest stone floor, mid grey-violet
@@ -1336,7 +1340,7 @@
       R(1746,315,624,2,'rgba(20,34,18,.45)'); // v15: core line inside the steps' shadow
       b.restore();
     },
-    buildCastleShadows(){const c=document.createElement('canvas');c.width=this.mapBase.width;c.height=this.mapBase.height;const x=c.getContext('2d');x.setTransform(SS,0,0,SS,0,0);x.fillStyle='#33503e';const cast=(a,b,y,dx,dy)=>{x.beginPath();x.moveTo(a,y);x.lineTo(b,y);x.lineTo(b+dx,y+dy);x.lineTo(a+dx,y+dy);x.closePath();x.fill();};cast(256,1792,140,48,24);cast(724,812,140,38,18);cast(1236,1324,140,38,18);cast(864,1184,158,30,16);x.fillRect(252,136,598,4);x.fillRect(1200,136,596,4);x.fillRect(850,156,360,4); /* v14: plinth contact shadow moved 115->136 (terrace face now ends at bake 270 = logical 135) */ for(const px of [872,966,1060,1154])cast(px,px+22,158,16,13);for(const [gx,gy] of (this.bigTrees||[])){x.beginPath();x.ellipse(gx*32+16+10,gy*32+30,30,9,0,0,Math.PI*2);x.fill();}for(const [gx,gy] of this.TREES){x.beginPath();x.ellipse(gx*32+16+25,gy*32+16+16,20,8,0,0,Math.PI*2);x.fill();}for(let gy=0;gy<this.mapH();gy++)for(let gx=0;gx<this.mapW();gx++){const k=this.tiles[gy][gx];if(k==='hedge'&&this.tiles[gy+1]?.[gx]!=='hedge')x.fillRect(gx*32+2,gy*32+30,31,7);else if(k==='bench')x.fillRect(gx*32+4,gy*32+23,28,6);else if(k==='plant'){x.beginPath();x.ellipse(gx*32+19,gy*32+29,10,4,0,0,Math.PI*2);x.fill();}}x.beginPath();x.ellipse(1024+22,452,11,4,.55,0,Math.PI*2);x.fill(); /* v15 cores: a smaller, darker heart inside the big flat casts so the ground shadows stop reading as uniform tint bands (Claude v14) */ x.fillStyle='#203826';cast(256,1792,140,26,13);cast(724,812,140,20,10);cast(1236,1324,140,20,10);cast(864,1184,158,16,9);x.fillRect(252,137,598,2);x.fillRect(1200,137,596,2);x.fillRect(850,157,360,2);for(const px of [872,966,1060,1154])cast(px,px+22,158,9,7);for(const [gx,gy] of (this.bigTrees||[])){x.beginPath();x.ellipse(gx*32+16+7,gy*32+30,17,5,0,0,Math.PI*2);x.fill();}for(const [gx,gy] of this.TREES){x.beginPath();x.ellipse(gx*32+16+20,gy*32+16+16,11,4,0,0,Math.PI*2);x.fill();}for(let gy=0;gy<this.mapH();gy++)for(let gx=0;gx<this.mapW();gx++){if(this.tiles[gy][gx]==='hedge'&&this.tiles[gy+1]?.[gx]!=='hedge')x.fillRect(gx*32+3,gy*32+31,29,3);}this.shadowLayer=c;},
+    buildCastleShadows(){const c=document.createElement('canvas');c.width=this.mapBase.width;c.height=this.mapBase.height;const x=c.getContext('2d');x.setTransform(SS,0,0,SS,0,0);x.fillStyle='#33503e';const cast=(a,b,y,dx,dy)=>{x.beginPath();x.moveTo(a,y);x.lineTo(b,y);x.lineTo(b+dx,y+dy);x.lineTo(a+dx,y+dy);x.closePath();x.fill();};cast(256,1792,140,28,14);cast(724,812,140,30,14);cast(1236,1324,140,30,14);cast(864,1184,158,24,12);x.fillRect(252,136,598,4);x.fillRect(1200,136,596,4);x.fillRect(850,156,360,4); /* v14: plinth contact shadow moved 115->136 (terrace face now ends at bake 270 = logical 135) */ /* v20: cast tails shortened (main 24->14, towers 18->14, porch 16->12) so the translucent band ENDS on the facade apron (logical y<=160) instead of spilling over the apron/tile boundary, where it read as an overlay strip across the grass/paving seam (Claude v19). Contact shadows and cores unchanged — the shadow stays strong at the wall base (item 5). */ for(const px of [872,966,1060,1154])cast(px,px+22,158,16,13);for(const [gx,gy] of (this.bigTrees||[])){x.beginPath();x.ellipse(gx*32+16+10,gy*32+30,30,9,0,0,Math.PI*2);x.fill();}for(const [gx,gy] of this.TREES){x.beginPath();x.ellipse(gx*32+16+25,gy*32+16+16,20,8,0,0,Math.PI*2);x.fill();}for(let gy=0;gy<this.mapH();gy++)for(let gx=0;gx<this.mapW();gx++){const k=this.tiles[gy][gx];if(k==='hedge'&&this.tiles[gy+1]?.[gx]!=='hedge')x.fillRect(gx*32+2,gy*32+30,31,7);else if(k==='bench')x.fillRect(gx*32+4,gy*32+23,28,6);else if(k==='plant'){x.beginPath();x.ellipse(gx*32+19,gy*32+29,10,4,0,0,Math.PI*2);x.fill();}}x.beginPath();x.ellipse(1024+22,452,11,4,.55,0,Math.PI*2);x.fill(); /* v15 cores: a smaller, darker heart inside the big flat casts so the ground shadows stop reading as uniform tint bands (Claude v14) */ x.fillStyle='#203826';cast(256,1792,140,18,9);cast(724,812,140,20,10);cast(1236,1324,140,20,10);cast(864,1184,158,16,9);x.fillRect(252,137,598,2);x.fillRect(1200,137,596,2);x.fillRect(850,157,360,2);for(const px of [872,966,1060,1154])cast(px,px+22,158,9,7);for(const [gx,gy] of (this.bigTrees||[])){x.beginPath();x.ellipse(gx*32+16+7,gy*32+30,17,5,0,0,Math.PI*2);x.fill();}for(const [gx,gy] of this.TREES){x.beginPath();x.ellipse(gx*32+16+20,gy*32+16+16,11,4,0,0,Math.PI*2);x.fill();}for(let gy=0;gy<this.mapH();gy++)for(let gx=0;gx<this.mapW();gx++){if(this.tiles[gy][gx]==='hedge'&&this.tiles[gy+1]?.[gx]!=='hedge')x.fillRect(gx*32+3,gy*32+31,29,3);}this.shadowLayer=c;},
     drawEdges(b){const stone=new Set(['stone','path']);for(let y=0;y<this.mapH();y++)for(let x=0;x<this.mapW();x++){const k=this.tiles[y][x],px=x*32,py=y*32;if(stone.has(k)){for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]])if(this.tiles[y+dy]?.[x+dx]==='grass'){b.fillStyle='#7d6b5d';b.fillRect(px+(dx===1?31:dx===-1?0:0),py+(dy===1?31:0),32,1);}} /* v11: grass-blade spill onto stone removed — it read as stray green dots scattered over the paths (both v10 reviews) */if(k==='water'&&y>0&&this.tiles[y-1][x]!=='water'){b.fillStyle='#7d6b5d';b.fillRect(px,py,32,6);b.fillStyle='#cfefff';b.fillRect(px,py,32,1);}}},
     applyBlur(){ if(this.fg) this.fg.closest('#world-frame').classList.toggle('no-blur',!this.settings.blur); },
     drawTitleArt(){const c=$('title-art'),x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,540);g.addColorStop(0,'#101a36');g.addColorStop(.62,'#9a5862');g.addColorStop(1,'#f2a566');x.fillStyle=g;x.fillRect(0,0,960,540);for(let i=0;i<70;i++){x.fillStyle=`rgba(255,240,200,${.3+(i%4)*.1})`;x.fillRect((i*137)%960,(i*71)%260,2,2);}x.fillStyle='#f9dda0';x.beginPath();x.arc(760,115,38,0,7);x.fill();x.fillStyle='#20243a';x.fillRect(0,365,960,175);for(const [bx,by,bw,bh] of [[120,250,170,180],[320,210,150,220],[500,270,180,160],[690,190,170,230]]){x.fillRect(bx,by,bw,bh);x.fillRect(bx+35,by-60,bw-70,60);x.beginPath();x.moveTo(bx+20,by-60);x.lineTo(bx+bw/2,by-120);x.lineTo(bx+bw-20,by-60);x.fill();for(let wx=bx+35;wx<bx+bw-15;wx+=42){x.fillStyle='#ffc979';x.fillRect(wx,by+35,12,20);}x.fillStyle='#20243a';}x.fillStyle='#11182b';x.fillRect(0,480,960,60);},
@@ -1372,7 +1376,8 @@
         const STp={hl:'#e8d9c7',lt:'#d3c0ac',md:'#bca893',dk:'#9b8774',ol:'#7d6b5d'};
         const BRt={hl:'#d8c8ae',lt:'#b39d7d',md:'#9a8468',dk:'#77644e',ol:'#4a3d33',va:'#a58d6d',vb:'#8f7660'};
         const LFt={hl:'#93d94e',lt:'#7fc645',md:'#4f9a34',dk:'#2f6b2b',ol:'#1b4424'};
-        if(kind==='grass'){const pv=(((gx>>2)*31+(gy>>2)*57)>>>0)%4;ctx.fillStyle=['#5fa83c','#62a840','#5da53b','#5fa83c'][pv];ctx.fillRect(x,y,32,32);for(let i=0;i<3;i++){const h=hx2(i+7),tx=x+2+(h%27),ty=y+5+((h>>>8)%25);ctx.fillStyle='#2f6b2b';ctx.fillRect(tx,ty,1,2);ctx.fillRect(tx+2,ty,1,2);ctx.fillStyle='#7fc645';ctx.fillRect(tx+1,ty-1,1,1);}} // v15: patch blocks 2x2 -> 4x4 tiles and tone spread narrowed (v14: rectangular light/dark patches read as tiles)
+        // v20: grass block-tone spread narrowed again (#62a840/#5da53b -> #61a73f/#5ea63b) — the 4x4-block tone steps still printed as faint vertical seam lines on open grass (Claude v19)
+        if(kind==='grass'){const pv=(((gx>>2)*31+(gy>>2)*57)>>>0)%4;ctx.fillStyle=['#5fa83c','#61a73f','#5ea63b','#5fa83c'][pv];ctx.fillRect(x,y,32,32);for(let i=0;i<3;i++){const h=hx2(i+7),tx=x+2+(h%27),ty=y+5+((h>>>8)%25);ctx.fillStyle='#2f6b2b';ctx.fillRect(tx,ty,1,2);ctx.fillRect(tx+2,ty,1,2);ctx.fillStyle='#7fc645';ctx.fillRect(tx+1,ty-1,1,1);}} // v15: patch blocks 2x2 -> 4x4 tiles and tone spread narrowed (v14: rectangular light/dark patches read as tiles)
         else if(kind==='stone'||kind==='path'){this.pavers6(ctx,x,y,32,32);}
         else if(kind==='water'){ctx.fillStyle='#3b6fb0';ctx.fillRect(x,y,32,4);ctx.fillStyle='#4f8fd0';ctx.fillRect(x,y+4,32,28);{const h=hx2(21);ctx.fillStyle='#a9c8ec';ctx.fillRect(x+3+(h%20),y+8+((h>>>8)%18),5,1);}}
         else if(kind==='fountain'){this.pavers6(ctx,x,y,32,32);}
@@ -1422,9 +1427,15 @@
           for(let i=0;i<2;i++){const h=hx2(i+220);ctx.fillStyle='#417f2d';ctx.fillRect(x+3+(h%18),y+4+((h>>>8)%20),10,6);}
           {const h=hx2(77);ctx.fillStyle='#579e3c';ctx.fillRect(x+6+(h%14),y+10+((h>>>8)%12),8,4);}
           const fc7=['#d99ab4','#cf8aa6','#b96f92']; // v19: 2 pinks + 1 shade pink, saturation cut (Claude v18: the saturated pink grains stole second place in the gaze order, item 7). Density from v12 unchanged — the beds must still read as masses, not dots.
-          const cluster=(ccx,ccy,h0,cs=1)=>{this.v4Ellipse(ctx,ccx,ccy,Math.round(8*cs),Math.round(5*cs),'#2f6626');this.v4Ellipse(ctx,ccx,ccy-1,Math.round(7*cs),Math.round(4*cs),'#3c7529');
+          // v20: stamp-feel break (Claude v19: with the saturation cut, the identical cluster shape
+          // and spacing started to read as wallpaper). Each cluster now rotates/mirrors its flower
+          // offsets by hash, jitters every flower +-1, and varies its ellipse radii independently.
+          // Cluster count per tile (3-5) and flowers per cluster (6+2) are unchanged — density kept.
+          const cluster=(ccx,ccy,h0,cs=1)=>{const rot=h0%4,mir=(h0>>>3)%2,erx=Math.max(4,Math.round(8*cs*(0.9+((h0>>>5)%3)*0.12))),ery=Math.max(3,Math.round(5*cs*(0.85+((h0>>>7)%3)*0.14)));
+            this.v4Ellipse(ctx,ccx,ccy,erx,ery,'#2f6626');this.v4Ellipse(ctx,ccx,ccy-1,Math.max(3,erx-1),Math.max(2,ery-1),'#3c7529');
             const offs=[[-4,-2],[0,-3],[4,-2],[-4,2],[0,1],[4,2]];
-            for(let q=0;q<6;q++){const h=hx2(h0+q*13),fx=ccx+Math.round(offs[q][0]*cs)-1,fy=ccy+Math.round(offs[q][1]*cs)-1;
+            for(let q=0;q<6;q++){let ox=offs[q][0],oy=offs[q][1];if(mir)ox=-ox;for(let r=0;r<rot;r++){const tt=ox;ox=-oy;oy=tt;}
+              const h=hx2(h0+q*13),fx=ccx+Math.round(ox*cs)+((h%3)-1)-1,fy=ccy+Math.round(oy*cs)+(((h>>>8)%3)-1)-1;
               ctx.fillStyle=fc7[h%3];ctx.fillRect(fx,fy,3,3);ctx.fillStyle='#ecc9d8';ctx.fillRect(fx+1,fy+1,1,1);}
             for(let q=0;q<2;q++){const h=hx2(h0+q*29+7),fx=ccx-6+(h%11),fy=ccy-3+((h>>>8)%7);
               ctx.fillStyle=fc7[h%3];ctx.fillRect(fx,fy,2,2);}};
