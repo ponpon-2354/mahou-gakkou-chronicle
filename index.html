@@ -284,7 +284,9 @@
         put(g,x0+d+1,y0,'H'); put(g,x0+d+2,y0,'H');
         put(g,x0+d,y0+1,'h'); put(g,x0+d+1,y0+1,'H'); put(g,x0+d+2,y0+1,'H'); put(g,x0+d+3,y0+1,'h');
         put(g,x0+d+1,y0+2,'h'); put(g,x0+d+2,y0+2,'h'); }
-      for(const by of [25,31]) put(g,x0+6,by,'h');
+      // v17: the x0+6 silhouette bumps are gone — they hung 1px past the OLD side panel (x26);
+      // the v17 back panel ends at x23, so the bumps would float in mid-air. The rope itself
+      // already pokes past the new panel edge.
       rect(g,x0,36,x0+4,37,'P'); put(g,x0+1,38,'H'); put(g,x0+2,38,'H'); put(g,x0+3,38,'h'); };
     if(side){
       // profile head facing left (head rows 0..20)
@@ -310,28 +312,28 @@
       rect(g,10,0,21,1,'H'); rect(g,9,2,22,19,'H'); rect(g,8,4,23,14,'H'); rect(g,10,19,21,20,'h');
       // v16: the two vertical 'h' slabs read as a helmet's grooves (v15 Claude). Slicked-back hair
       // is drawn as staggered horizontal strand segments sweeping back, plus a small sheen blob.
-      if(style==='slick'){ put(g,14,2,'L'); put(g,15,2,'L'); put(g,16,2,'L'); put(g,15,3,'L');
-        for(const x of [12,13,14,15,17,18,19]) put(g,x,4,'h'); for(const x of [11,12,13,14,18,19,20]) put(g,x,5,'h');
-        for(const x of [13,14,15,16,18,19,20]) put(g,x,8,'h'); for(const x of [11,12,13,16,17,18]) put(g,x,9,'h');
-        for(const x of [12,13,14,15]) put(g,x,12,'h'); for(const x of [17,18,19]) put(g,x,13,'h'); for(const x of [14,15,16]) put(g,x,15,'h');
-        for(const x of [12,13,14,17,18,19]) put(g,x,16,'h'); }
+      // v17: the segments read as a STRIPED helmet instead (Claude v16) — all strand line-work is
+      // now removed. Two tones only: the H mass + ONE sheen blob (L, top-left). The silhouette
+      // itself changes instead: skin ears at y10..13 (short hair leaves them bare) and the nape
+      // pulled in to x10..21 at y15..18.
+      if(style==='slick'){ rect(g,12,2,19,5,'L'); rect(g,13,6,18,6,'L');
+        for(const y of [10,11,12,13]){ put(g,8,y,'S'); put(g,23,y,'S'); }
+        for(const y of [15,16,17,18]){ put(g,9,y,'.'); put(g,22,y,'.'); } }
       if(style==='curly'){ for(const bx of [9,13,17,20]){ put(g,bx,0,'H'); put(g,bx+1,0,'H'); put(g,bx,1,'h'); } for(let i=0;i<7;i++)put(g,10+i*2,6+(i%3),'L'); put(g,10,20,'H'); put(g,15,21,'H'); put(g,20,20,'H'); }
-      if(style==='long'&&!pony){ rect(g,5,5,8,40,'H'); rect(g,23,5,26,39,'H'); rect(g,6,6,7,38,'h'); rect(g,24,6,25,37,'h'); rect(g,9,16,22,38,'H'); rect(g,11,18,12,36,'h'); rect(g,19,18,20,36,'h');
-        // v12 back hair: clump steps across the centre panel (stepped, not straight lines) + tapered tips (was a flat slab with an H pattern)
-        // v16: the v15 segment rows + vertical separations still formed a geometric lattice with
-        // the braid (v15 Claude: "ladder / window frame"). All thin line work is gone — shading is
-        // now two LARGE clump masses (rounded corners) plus a soft bottom crescent, so the panel
-        // reads as hair volume. The braid carries the detail instead.
-        for(let y=22;y<=27;y++) for(let x=11;x<=14;x++){ if((x===11||x===14)&&(y===22||y===27)) continue; put(g,x,y,'h'); }
-        for(let y=27;y<=32;y++) for(let x=17;x<=20;x++){ if((x===17||x===20)&&(y===27||y===32)) continue; put(g,x,y,'h'); }
-        for(const x of [12,13,14,15,16,17,18,19]) put(g,x,35,'h');
-        for(const x of [13,14,15,16,17,18]) put(g,x,36,'h');
-        for(const x of [14,15,16,17]) put(g,x,37,'h');
-        put(g,5,39,'.'); put(g,5,40,'.'); put(g,8,40,'.'); put(g,23,40,'.');
-        rect(g,13,39,18,39,'H'); put(g,15,40,'H'); put(g,16,40,'H');
-        // v14: flared wavy tips, left panel 1 row longer than the right (asymmetric hem — Elena's back panel is short and straight-cut)
-        put(g,4,38,'H'); put(g,4,39,'H'); put(g,5,41,'H'); put(g,6,41,'H'); put(g,7,41,'h'); put(g,26,40,'H'); put(g,25,40,'h');
-        put(g,6,12,'L'); put(g,24,16,'L'); if(c.ribbon){ rect(g,18,0,25,2,'P'); put(g,26,1,'P'); put(g,26,2,'P'); } if(c.braid){ braidBack(21); } }
+      if(style==='long'&&!pony){
+        // v17 (Claude v17 design): the side panels are ABOLISHED and the outline itself rebuilt —
+        // two rounds of interior-pattern fixes left a rectangular board. New shape: round head
+        // (base, widest x8..23 at y4..14) -> the base head's own step-in at y15..18 (x9..22) is
+        // the neck pinch -> mass over the back y19..30 at x8..23 (shoulders, no wider) -> taper
+        // y31..34 at x9..22 -> THREE tufts with notches from y35 (left tip y37, right tip y38,
+        // centre tip y40; gaps at x12/x19 show the robe through). Shading is 2 tones only: one
+        // angel-ring highlight at the crown + two 1px shadow ticks above the notches. The braid
+        // and ribbon carry the character detail.
+        rect(g,8,19,23,30,'H'); rect(g,9,31,22,34,'H');
+        rect(g,9,35,11,37,'H'); rect(g,13,35,18,40,'H'); rect(g,20,35,22,38,'H');
+        rect(g,13,6,18,6,'L'); put(g,11,7,'L'); put(g,12,7,'L'); put(g,19,7,'L'); put(g,20,7,'L');
+        for(const y of [31,32,33,34]){ put(g,12,y,'h'); put(g,19,y,'h'); }
+        if(c.ribbon){ rect(g,18,0,25,2,'P'); put(g,26,1,'P'); put(g,26,2,'P'); } if(c.braid){ braidBack(21); } }
       if(pony){ rect(g,9,16,22,23,'H'); rect(g,11,19,12,22,'h'); rect(g,19,19,20,22,'h'); // v14: back panel ends at the shoulders (row 23; Milia's reaches 40) with a straight hem
         rect(g,6,5,8,20,'H'); rect(g,7,6,7,18,'h');
         // v14 ponytail: a separate tail right of the panel, joined only at the gold band — the x23
@@ -848,7 +850,12 @@
         // every tree shared one green). ~1/4 deep evergreen, ~1/4 young yellow-green, half standard,
         // chosen by hash bits the layout/variant logic does not use. Thinning the planting itself
         // would change the tree collision set, so the monotony is broken by colour instead.
-        const tp=(seed>>>17)%4, tpal=tp===0?['#55a848','#2b7031','#1b4a26','#0d2a15']:tp===1?['#a9e063','#5cb84a','#3c7f34','#1e4523']:null;
+        // v17: a tree with a mirror partner across the map centre (the formal plantings) is
+        // pinned to the standard palette — v16's hash split one symmetric pair into dark green /
+        // yellow-green and the broken formality read as a bug (Claude v16). The yellow-green
+        // palette itself is desaturated to ~60% (it floated out of the scene's tone).
+        const tPair=this.TREES.some(([mx,my])=>my===gy&&mx!==gx&&Math.abs(mx+gx-63)<=1);
+        const tp=(seed>>>17)%4, tpal=tPair?null:tp===0?['#55a848','#2b7031','#1b4a26','#0d2a15']:tp===1?['#a6c77c','#6ba260','#487043','#263d29']:null;
         cl.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],0,tpal));
         cl.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],1,tpal));
         cl.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],3,tpal));
@@ -867,7 +874,8 @@
         if((seed>>>9)%2)cl2.forEach(a=>{a[0]=2*x-a[0];});
         if((seed>>>13)%3===0)cl2.forEach(a=>{a[1]-=5;a[3]*=1.08;});
         // v16: same per-tree palette variation as the regular trees (independent hash bits)
-        const bp=(seed>>>19)%4, bpal=bp===0?['#55a848','#2b7031','#1b4a26','#0d2a15']:bp===1?['#a9e063','#5cb84a','#3c7f34','#1e4523']:null;
+        const bPair=(this.bigTrees||[]).some(([mx,my])=>my===gy&&mx!==gx&&Math.abs(mx+gx-63)<=1); // v17: formal pairs pinned to standard (see regular trees)
+        const bp=(seed>>>19)%4, bpal=bPair?null:bp===0?['#55a848','#2b7031','#1b4a26','#0d2a15']:bp===1?['#a6c77c','#6ba260','#487043','#263d29']:null;
         cl2.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],0,bpal));
         cl2.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],1,bpal));
         cl2.forEach(a=>this.leafCluster(t,a[0],a[1],a[2],a[3],a[4],3,bpal));
@@ -1053,7 +1061,7 @@
       const bandAt=(stops,t)=>{let cc=stops[0][1];for(const [tt,c2] of stops)if(t>=tt)cc=c2;return cc;};
       const BR={hl:'#d8c8ae',lt:'#b39d7d',md:'#9a8468',dk:'#77644e',ol:'#4a3d33',va:'#a58d6d',vb:'#8f7660'};
       const BR2={hl:'#b39d7d',lt:'#9a8468',md:'#77644e',dk:'#5d4c3c',ol:'#3a2f28',va:'#77644e',vb:'#6b5847'};
-      const SL={hl:'#a6c4ec',lt:'#7398cf',md:'#5174aa',dk:'#3a5389',ol:'#22325a'};
+      const SL={hl:'#9fb2d4',lt:'#7088b8',md:'#4d6494',dk:'#3a4c78',ol:'#1f2a48'}; // v17 contrast design (Claude): base md/dk moved to slate blue-grey (target #465c8b sits between them), saturation down, lt->md->dk steps widened
       const ST={hl:'#e8d9c7',lt:'#d3c0ac',md:'#bca893',dk:'#9b8774',ol:'#7d6b5d'};
       const bricks=(x,y,w,h,m)=>{R(x,y,w,h,m.ol);for(let by=y,row=0;by<y+h;by+=12,row++){const off=(row%2)*12;for(let bx=x+off-24;bx<x+w;bx+=24){const cx0=Math.max(bx,x),cx1=Math.min(bx+22,x+w);if(cx1<=cx0)continue;const cy1=Math.min(by+10,y+h);if(cy1<=by)continue;const hs=hash(bx,by);let body=m.md;if(hs%6===0)body=m.va;else if(hs%6===1)body=m.vb;R(cx0,by,cx1-cx0,cy1-by,body);R(cx0,by,cx1-cx0,2,m.lt);if(bx>=x)R(cx0,by,2,cy1-by,m.lt);R(cx0,cy1-2,cx1-cx0,2,m.dk);if(bx+22<x+w)R(cx1-2,by,2,cy1-by,m.dk);}}};
       // v16 density unification: porch slates widened 16 -> 24 bake px and the per-slate dark bottom
@@ -1067,7 +1075,7 @@
       // silhouette and read as a second wall standing behind the roof (both v13 reviews). A darker
       // slate field fills y0..62 first, so the roof reads as one mass seen from above — this area is
       // now on screen permanently with the v14 pinned framing, so it had to be fixed with it.
-      const SLN={hl:'#5d7fb5',lt:'#46639c',md:'#354e80',dk:'#2a3f6b',ol:'#1c2c4e'};
+      const SLN={hl:'#5d709c',lt:'#4a5c86',md:'#364668',dk:'#283553',ol:'#18213a'}; // v17: slate family, one step darker than SL (unlit back slope)
       const peaks=[[704,44],[1088,34],[1472,24],[1856,12],[2240,12],[2624,24],[3008,34],[3392,44]];
       // v15 roof reorganization (Claude v14's top weakness: "staircase patches, ambiguous ridge" —
       // the v13 build tiled the slope with slates() per peak, and the overlapping fields' band
@@ -1083,7 +1091,7 @@
       const roofTop=(x)=>{let t=58;for(const [cx,py] of peaks){const d=Math.abs(x-cx);if(d<192)t=Math.min(t,Math.round(py+(58-py)*d/192));}return t;};
       // north slope: one flat plane, with a quiet dark seat where it dives behind the ridge line
       R(512,0,3072,62,SLN.md);
-      R(512,38,3072,2,'#2e4471'); // v16: ONE faint course on the far slope too (same material cue, quieter)
+      R(512,38,3072,2,'#2c3c60'); // v16: ONE faint course on the far slope too (same material cue, quieter)
       R(512,52,3072,10,SLN.dk);
       // ridge beam: capped line across the full width + end posts, so the ridge visibly ENDS
       R(512,4,3072,4,SLN.lt);R(512,8,3072,2,SLN.ol);
@@ -1094,17 +1102,18 @@
       for(let x=512;x<3584;x+=2){const t=roofTop(x);R(x,t,2,100-t,SL.md);R(x,100,2,38,SL.dk);}
       R(512,98,3072,2,SL.ol); // the single course line splitting the two planes
       // v16: faint tile courses return — a FEW pale lines only (v15 Claude: the cleaned planes lost
-      // every material cue and read as "night mountains" at game scale). Two courses on the upper
-      // plane (a step darker than md), two on the lower (a step lighter than dk), plus sparse
-      // staggered seam ticks in the lower bands. Deliberately paler and sparser than the v13
-      // slate tiling so the planes stay large and the ridge stays unambiguous.
+      // every material cue and read as "night mountains" at game scale).
+      // v17 (Claude's diagnosis: the count was fine, the CONTRAST was not): same lines, same count,
+      // but the luminance step to the ground is now ~2x — upper courses #364874 (Y72 vs md Y99,
+      // delta 27), lower courses/ticks #24325a (Y50 vs dk Y76, delta 26) — and the ground itself
+      // moved to slate blue-grey so the slope stops reading as night sky.
       for(let x=512;x<3584;x+=2){const t=roofTop(x);
-        for(const cy of [74,88])if(cy>t+10)R(x,cy,2,2,'#456496');
-        R(x,112,2,2,'#415f93');R(x,126,2,2,'#415f93');}
-      for(let bx=536;bx<3584;bx+=96)R(bx,102,2,8,'#415f93');
-      for(let bx=584;bx<3584;bx+=96)R(bx,114,2,10,'#415f93');
-      for(let bx=536;bx<3584;bx+=96)R(bx,128,2,8,'#415f93');
-      for(let bx=584;bx<3584;bx+=96)if(roofTop(bx)<80)R(bx,90,2,8,'#456496');
+        for(const cy of [74,88])if(cy>t+10)R(x,cy,2,2,'#364874');
+        R(x,112,2,2,'#24325a');R(x,126,2,2,'#24325a');}
+      for(let bx=536;bx<3584;bx+=96)R(bx,102,2,8,'#24325a');
+      for(let bx=584;bx<3584;bx+=96)R(bx,114,2,10,'#24325a');
+      for(let bx=536;bx<3584;bx+=96)R(bx,128,2,8,'#24325a');
+      for(let bx=584;bx<3584;bx+=96)if(roofTop(bx)<80)R(bx,90,2,8,'#364874');
       // gable triangles: flat 3-tone split, NO per-step lines (v16: 2px steps, finer silhouette)
       for(const [cx,py] of peaks){const halfW=192,valleyY=58;
         for(let y=py;y<valleyY;y+=2){const t=(y-py)/(valleyY-py),hw=Math.round(halfW*t);if(hw<=2)continue;R(cx-hw,y,hw*2,2,SL.md);R(cx-hw,y,Math.round(hw*.62),2,SL.lt);R(cx+Math.round(hw*.55),y,hw-Math.round(hw*.55),2,SL.dk);}
@@ -1113,7 +1122,9 @@
       for(let vx=896;vx<3584;vx+=384){R(vx-1,58,2,40,SL.ol);R(vx-1,100,2,38,SL.ol);}
       // ridge trace along the wave silhouette: light cap on the north side, dark line on the south
       // (v16: traced per 2px column so the cap's own steps halve)
-      for(let x=512;x<3584;x+=2){const t=roofTop(x);R(x,t-3,2,2,'#7d9cc9');R(x,t-1,2,1,SLN.ol);R(x,t,2,2,SL.ol);}
+      // (v17: cap #7d9cc9 Y152 -> #6a7fac Y126, one step down — it was bright enough to read as a
+      // snow line on a mountain ridge; it is now the roof's only bright line, dimmer than SL.lt)
+      for(let x=512;x<3584;x+=2){const t=roofTop(x);R(x,t-3,2,2,'#6a7fac');R(x,t-1,2,1,SLN.ol);R(x,t,2,2,SL.ol);}
       R(512,138,3072,4,SL.dk);R(512,142,3072,2,SL.ol); // v13: dark lowest course + eave line at the slope's foot
       // dormers (v13: moved down onto the deepened slope, bases at y134)
       for(const dx of [820,3020]){for(let i=0;i<4;i++){const w=44-i*9,y=116-i*7;R(dx-Math.round(w/2),y,w,7,SL.md);R(dx-Math.round(w/2),y,Math.round(w*.4),7,SL.lt);R(dx-Math.round(w/2),y+6,w,1,SL.dk);}R(dx-13,104,26,26,ST.lt);R(dx-9,108,18,18,'#7ea6d8');R(dx-9,120,18,6,'#5f83b8');R(dx-1,108,2,18,ST.lt);R(dx-17,130,34,4,ST.dk);}
@@ -1162,23 +1173,35 @@
       // v13 reviews read the porch roof as part of the main roof). Hue + lightness now separate them.
       // v15: pulled back toward the main roof's blue family (v14 Antigravity: the violet floated);
       // separation now comes from lightness + the fascia/outline below, not from hue distance.
-      const SL2={hl:'#c9d8f8',lt:'#9db4e8',md:'#7d94d6',dk:'#5a6fb4',ol:'#3e4e86'};
+      const SL2={hl:'#c3d0ec',lt:'#94a8d6',md:'#7287bd',dk:'#55689d',ol:'#333f6a'}; // v17: violet hue dropped, same slate family as SL, lightness +~35 kept
       // v13: porch roof plane deepened (valley 68->58, eave 86->104) so it reads as a slope seen from
       // above like the main roof; the slate course pitch stays identical to the main roof (12 bake px)
-      const PR={x0:1696,x1:2400,valley:58,eave:104};
-      for(const [pcx,py] of [[1813,36],[2048,32],[2282,36]]){const halfW=118;
-        for(let y=py;y<PR.valley;y+=3){const t=(y-py)/(PR.valley-py),hw=Math.round(halfW*t);if(hw<=2)continue;R(pcx-hw,y,hw*2,3,SL2.md);R(pcx-hw,y,Math.round(hw*.62),3,SL2.lt);R(pcx+Math.round(hw*.55),y,hw-Math.round(hw*.55),3,SL2.dk);for(const so of [-84,-56,-28,0,28,56,84])if(Math.abs(so)<hw-8)R(pcx+so,y,1,3,SL2.ol);R(pcx-hw,y,2,3,ST.hl);R(pcx-hw+2,y,1,3,ST.dk);R(pcx+hw-2,y,2,3,ST.md);R(pcx+hw-3,y,1,3,ST.ol);} // v15: per-step bottom line removed (same striping family as the main roof); v16: 3px steps for a finer gable edge
+      // v17 (Claude's diagnosis: the ribbon read came from ONE flat tone across the whole band, not
+      // from the zigzag itself — the target's eave zigzags too, but each gable is split into lit /
+      // shaded folded faces). Peaks levelled to y32, valley raised 58->54, eave amplitude widened
+      // 26->34 (valley eave 78->70, centre eave stays 104). Each gable is now ONE folded plane:
+      // left face lt, right face md, split by a ridge pair (hl left / dk right of the centre
+      // column) running from the peak straight down to the eave; 2px valley lines (ol) separate
+      // the three units; field courses run parallel to the eave segments and break at both lines.
+      const PR={x0:1696,x1:2400,valley:54,eave:104};
+      const PG=[1813,2048,2282];
+      for(const pcx of PG){const halfW=118,py=32;
+        for(let y=py;y<PR.valley;y+=3){const t=(y-py)/(PR.valley-py),hw=Math.round(halfW*t);if(hw<=2)continue;R(pcx-hw,y,hw-1,3,SL2.lt);R(pcx-1,y,1,3,SL2.hl);R(pcx,y,1,3,SL2.dk);R(pcx+1,y,hw-1,3,SL2.md);R(pcx-hw,y,2,3,ST.hl);R(pcx-hw+2,y,1,3,ST.dk);R(pcx+hw-2,y,2,3,ST.md);R(pcx+hw-3,y,1,3,ST.ol);}
         R(pcx-3,py-3,6,3,ST.lt);R(pcx-1,py-5,2,2,'#d9b45c');} // v16: finial gold dulled (#ffd94d sparkled like a star at game scale, v15 Claude)
-      // v9: the field's lower edge zigzags with the gables (deepest under each gable centre, rising at the valleys) — clipped slate field
-      const eaveAt=(x)=>{let bot=78;for(const pcx of [1813,2048,2282]){const d=Math.abs(x-pcx);if(d<118)bot=Math.max(bot,104-Math.round(d*26/118));}return bot;};
-      b.save();b.beginPath();b.moveTo(PR.x0,PR.valley);b.lineTo(PR.x1,PR.valley);for(let x=PR.x1;x>=PR.x0;x-=8)b.lineTo(x,eaveAt(x));b.closePath();b.clip();
-      slates(PR.x0,PR.valley,PR.x1-PR.x0,PR.eave-PR.valley+2,SL2);
-      // v8: vertical seams on the porch roof field so the two roofs stop reading as one surface
-      // (v16: spacing 28 -> 48, matching the widened 24px slates — density unification)
-      for(let sx2=PR.x0+14;sx2<PR.x1;sx2+=48)R(sx2,PR.valley,1,PR.eave-PR.valley+2,SL2.ol);
-      b.restore();
-      // v9 shape separation: each gable drops a shadow onto the field below it, so the gables read as raised shapes, not paint
-      for(const pcx of [1813,2048,2282])R(pcx-118,PR.valley,236,4,'rgba(24,16,36,.30)');
+      // v9: the field's lower edge zigzags with the gables (deepest under each gable centre, rising at the valleys)
+      const eaveAt=(x)=>{let bot=70;for(const pcx of PG){const d=Math.abs(x-pcx);if(d<118)bot=Math.max(bot,104-Math.round(d*34/118));}return bot;};
+      // field: the same two faces continued below the valley line, per 2px column
+      for(let x=PR.x0;x<PR.x1;x+=2){let pcx=null,bd=1e9;for(const c of PG){const d=Math.abs(x+1-c);if(d<118&&d<bd){bd=d;pcx=c;}}
+        if(pcx===null)continue;const bot=eaveAt(x);
+        R(x,PR.valley,2,bot-PR.valley,x+1<pcx?SL2.lt:SL2.md);
+        // slanted courses parallel to the eave segments, one step darker than each face,
+        // broken at the valley lines and at the ridge pair (a continuous V would read as a band)
+        if(![1930,2165].some(vx=>Math.abs(x-vx)<5)&&Math.abs(x+1-pcx)>=4)
+          for(const off of [13,26]){const cy=bot-off;if(cy>=PR.valley+4)R(x,cy,2,2,x+1<pcx?SL2.md:SL2.dk);}}
+      // ridge pairs continued through the field, peak to eave
+      for(const pcx of PG){R(pcx-1,PR.valley,1,PR.eave-PR.valley,SL2.hl);R(pcx,PR.valley,1,PR.eave-PR.valley,SL2.dk);}
+      // valley lines: the three gables become three separate roof units
+      for(const vx of [1929,2164])R(vx,PR.valley,2,eaveAt(vx+1)-PR.valley,SL2.ol);
       // v9: stone trim following the zigzag eave (stepped per 4px column), with dark end caps — the target's eave is a folded ribbon, not a straight board
       // v15: a fascia band under the trim gives the slab real THICKNESS (both v14 reviews: the porch
       // roof was a thin sheet — a 4px trim with the shadow directly beneath it). The cast shadow
